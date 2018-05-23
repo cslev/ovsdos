@@ -12,4 +12,4 @@ in the most popular cloud hypervisor switch, Open vSwitch, and reduce its effect
 certain cases, denying network access.
 
 ### Video showcasing the demo
-Under upload...
+[![Link to Youtube showcase](https://img.youtube.com/vi/eRrk7mlFCas/0.jpg)](https://www.youtube.com/watch?v=eRrk7mlFCas)
