@@ -1,4 +1,4 @@
-# ovsdos
+# Policy Injection: A Cloud Dataplane DoS Attack - SIGCOMM'18 DEMO
 Accompanying material for the SIGCOMM'18 Demo - Policy Injection: A Cloud Dataplane DoS Attack
 
 ### ABSTRACT
