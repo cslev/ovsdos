@@ -113,8 +113,8 @@ do
   sudo ip netns add "ns${i}"
   sudo ip link add "ns${i}_veth_root" type veth peer name "ns${i}_veth_ns"
   sudo ip link set "ns${i}_veth_ns" netns "ns${i}"
-  sudo ip addr add "10.1.${i}.1" dev "ns${i}_veth_root"
-  sudo ip netns exec "ns${i}" ifconfig "ns${i}_veth_ns" "10.1.${i}.2/8" up
+  sudo ip addr add "10.0.${i}.1" dev "ns${i}_veth_root"
+  sudo ip netns exec "ns${i}" ifconfig "ns${i}_veth_ns" "10.0.${i}.2/8" up
 
   sudo ip link set dev "ns${i}_veth_root" up
 #  sudo ip netns exec "ns${i}" ip link set dev "ns${i}_veth_ns" up
