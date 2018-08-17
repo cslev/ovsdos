@@ -1,6 +1,12 @@
 #!/bin/bash
+OVS_PATH_SET=0 #if set to 0, then /usr/[local]/bin/ binaries will be used
+OVS_MODPROBE=1 #if set, modprobe will be used  instead of insmod
+
 OVS_PATH="/home/csikor/openvswitch-2.5.5"
-#OVS_PATH=""
+OVSDB_PATH="${OVS_PATH}/ovsdb"
+OVSVSWITCHD_PATH="${OVS_PATH}/vswitchd"
+OVSVUTILITIES_PATH="${OVS_PATH}/utilities"
+OVS_MODPATH="${OVS_PATH}/datapath/linux/openvswitch.ko"
 
 #COLORIZING
 none='\033[0m'
@@ -62,53 +68,118 @@ fi
 
 ptcp_port=16633
 echo -ne "${yellow}Adding OVS kernel module${none}"
-sudo modprobe openvswitch 2>&1
-#sudo insmod $OVS_PATH/datapath/linux/openvswitch.ko 2>&1
+if [ $OVS_MODPROBE -eq 1 ]
+then
+  sudo modprobe openvswitch 2>&1
+else
+  sudo insmod $OVS_PATH/datapath/linux/openvswitch.ko 2>&1
+fi
+
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
 
 echo -ne "${yellow}Delete preconfigured ovs data${none}"
-sudo rm -rf /usr/local/etc/openvswitch/conf.db
+if [ $OVS_PATH_SET -eq 0 ]
+then
+  sudo rm -rf /etc/openvswitch/conf.db
+else
+  sudo rm -rf /usr/local/etc/openvswitch/conf.db
+fi
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
-sudo mkdir -p /usr/local/etc/openvswitch/
+if [ $OVS_PATH_SET -eq 0 ]
+then
+  sudo mkdir -p /etc/openvswitch/
+else
+  sudo mkdir -p /usr/local/etc/openvswitch/
+fi
 
 echo -ne "${yellow}Create ovs database structure${none}"
-sudo $OVS_PATH/ovsdb/ovsdb-tool create /usr/local/etc/openvswitch/conf.db  $OVS_PATH/vswitchd/vswitch.ovsschema
+if [ $OVS_PATH_SET -eq 0 ]
+then
+  sudo ovsdb-tool create /etc/openvswitch/conf.db  /usr/share/openvswitch/vswitch.ovsschema
+else
+  sudo $OVSDB_PATH/ovsdb-tool create /usr/local/etc/openvswitch/conf.db  $OVSVSWITCHD_PATH/vswitchd/vswitch.ovsschema
+fi
+
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
-sudo mkdir -p /usr/local/var/run/openvswitch
-
+if [ $OVS_PATH_SET -eq 0 ]
+then
+  sudo mkdir -p /var/run/openvswitch
+else
+  sudo mkdir -p /usr/local/var/run/openvswitch
+fi
 
 echo -ne "${yellow}Start ovsdb-server...${none}"
-sudo $OVS_PATH/ovsdb/ovsdb-server --remote=punix:/usr/local/var/run/openvswitch/db.sock --remote=db:Open_vSwitch,Open_vSwitch,manager_options --pidfile --detach
+if [ $OVS_PATH_SET -eq 0 ]
+then
+  sudo ovsdb-server --remote=punix:/var/run/openvswitch/db.sock --remote=db:Open_vSwitch,Open_vSwitch,manager_options --pidfile --detach
+else
+  sudo $OVSDB_PATH/ovsdb-server --remote=punix:/usr/local/var/run/openvswitch/db.sock --remote=db:Open_vSwitch,Open_vSwitch,manager_options --pidfile --detach
+fi
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
 echo -e "Initializing..."
-sudo $OVS_PATH/utilities/ovs-vsctl --no-wait init
+if [ $OVS_PATH_SET -eq 0 ]
+then
+  sudo ovs-vsctl --no-wait init
+else
+  sudo $OVSUTILITIES_PATH/ovs-vsctl --no-wait init
+fi
 
 echo -ne "${yellow}exporting environmental variable DB_SOCK${none}"
-export DB_SOCK=/usr/local/var/run/openvswitch/db.sock
+if [ $OVS_PATH_SET -eq 0 ]
+then
+  export DB_SOCK=/var/run/openvswitch/db.sock
+else
+  export DB_SOCK=/usr/local/var/run/openvswitch/db.sock
+fi
 echo -e "${bold}${green}\t\t[DONE]${none}"
 
 echo -ne "${yellow}start vswitchd...${none}"
-sudo $OVS_PATH/vswitchd/ovs-vswitchd unix:$DB_SOCK --pidfile --detach
+if [ $OVS_PATH_SET -eq 0 ]
+then
+  sudo ovs-vswitchd unix:$DB_SOCK --pidfile --detach
+else
+  sudo $OVSVSWITCHD_PATH/ovs-vswitchd unix:$DB_SOCK --pidfile --detach
+fi
 echo -e "${bold}${green}\t\t[DONE]${none}"
 
 
 echo -ne "${yellow}Create bridge (${DBR})${none}"
-sudo $OVS_PATH/utilities/ovs-vsctl add-br $DBR
+if [ $OVS_PATH_SET -eq 0 ]
+then
+  sudo ovs-vsctl add-br $DBR
+else
+  sudo $OVSUTILITIES_PATH/ovs-vsctl add-br $DBR
+fi
 echo -e "${bold}${green}\t\t[DONE]${none}"
 
 echo -ne "${yellow}Deleting flow rules from ${DBR}${none}"
-sudo $OVS_PATH/utilities/ovs-ofctl del-flows $DBR
+if [ $OVS_PATH_SET -eq 0 ]
+then
+  sudo ovs-ofctl del-flows $DBR
+else
+  sudo $OVSUTILITIES_PATH/ovs-ofctl del-flows $DBR
+fi
 echo -e "${bold}${green}\t\t[DONE]${none}"
 
 
 echo -ne "${yellow}Add passive controller listener port on ${ptcp_port}${none}"
-sudo $OVS_PATH/utilities/ovs-vsctl set-controller $DBR ptcp:$ptcp_port
+if [ $OVS_PATH_SET -eq 0 ]
+then
+  sudo ovs-vsctl set-controller $DBR ptcp:$ptcp_port
+else
+  sudo $OVSUTILITIES_PATH/ovs-vsctl set-controller $DBR ptcp:$ptcp_port
+fi
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
 echo -e "OVS (${DBR}) has been fired up!"
-sudo $OVS_PATH/utilities/ovs-vsctl show
+if [ $OVS_PATH_SET -eq 0 ]
+then
+  sudo ovs-vsctl show
+else
+  sudo $OVSUTILITIES_PATH/ovs-vsctl show
+fi
 echo -e "${none}"
