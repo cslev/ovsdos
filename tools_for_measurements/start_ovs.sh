@@ -1,7 +1,6 @@
 #!/bin/bash
-#OVS_PATH="/home/csikor/openvswitch-2.5.1"
-#OVS_PATH="/home/csikor/openvswitch-2.5.1"
-OVS_PATH=""
+OVS_PATH="/home/csikor/openvswitch-2.5.5"
+#OVS_PATH=""
 
 #COLORIZING
 none='\033[0m'
@@ -64,6 +63,7 @@ fi
 ptcp_port=16633
 echo -ne "${yellow}Adding OVS kernel module${none}"
 sudo modprobe openvswitch 2>&1
+#sudo insmod $OVS_PATH/datapath/linux/openvswitch.ko 2>&1
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
 
@@ -71,39 +71,44 @@ echo -ne "${yellow}Delete preconfigured ovs data${none}"
 sudo rm -rf /usr/local/etc/openvswitch/conf.db
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
+sudo mkdir -p /usr/local/etc/openvswitch/
+
 echo -ne "${yellow}Create ovs database structure${none}"
-sudo ovsdb-tool create /usr/local/etc/openvswitch/conf.db  /usr/local/share/openvswitch/vswitch.ovsschema
+sudo $OVS_PATH/ovsdb/ovsdb-tool create /usr/local/etc/openvswitch/conf.db  $OVS_PATH/vswitchd/vswitch.ovsschema
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
+sudo mkdir -p /usr/local/var/run/openvswitch
+
+
 echo -ne "${yellow}Start ovsdb-server...${none}"
-sudo ovsdb-server --remote=punix:/usr/local/var/run/openvswitch/db.sock --remote=db:Open_vSwitch,Open_vSwitch,manager_options --pidfile --detach
+sudo $OVS_PATH/ovsdb/ovsdb-server --remote=punix:/usr/local/var/run/openvswitch/db.sock --remote=db:Open_vSwitch,Open_vSwitch,manager_options --pidfile --detach
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
 echo -e "Initializing..."
-sudo ovs-vsctl --no-wait init
+sudo $OVS_PATH/utilities/ovs-vsctl --no-wait init
 
 echo -ne "${yellow}exporting environmental variable DB_SOCK${none}"
 export DB_SOCK=/usr/local/var/run/openvswitch/db.sock
 echo -e "${bold}${green}\t\t[DONE]${none}"
 
 echo -ne "${yellow}start vswitchd...${none}"
-sudo ovs-vswitchd unix:$DB_SOCK --pidfile --detach
+sudo $OVS_PATH/vswitchd/ovs-vswitchd unix:$DB_SOCK --pidfile --detach
 echo -e "${bold}${green}\t\t[DONE]${none}"
 
 
 echo -ne "${yellow}Create bridge (${DBR})${none}"
-sudo ovs-vsctl add-br $DBR
+sudo $OVS_PATH/utilities/ovs-vsctl add-br $DBR
 echo -e "${bold}${green}\t\t[DONE]${none}"
 
 echo -ne "${yellow}Deleting flow rules from ${DBR}${none}"
-sudo ovs-ofctl del-flows $DBR
+sudo $OVS_PATH/utilities/ovs-ofctl del-flows $DBR
 echo -e "${bold}${green}\t\t[DONE]${none}"
 
 
 echo -ne "${yellow}Add passive controller listener port on ${ptcp_port}${none}"
-sudo ovs-vsctl set-controller $DBR ptcp:$ptcp_port
+sudo $OVS_PATH/utilities/ovs-vsctl set-controller $DBR ptcp:$ptcp_port
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
 echo -e "OVS (${DBR}) has been fired up!"
-sudo ovs-vsctl show
+sudo $OVS_PATH/utilities/ovs-vsctl show
 echo -e "${none}"
