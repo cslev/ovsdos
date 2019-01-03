@@ -1,11 +1,11 @@
 #!/bin/bash
-OVS_PATH_SET=0 #if set to 0, then /usr/[local]/bin/ binaries will be used
-OVS_MODPROBE=1 #if set, modprobe will be used  instead of insmod
+OVS_PATH_SET=1 #if set to 0, then /usr/[local]/bin/ binaries will be used
+OVS_MODPROBE=0 #if set, modprobe will be used  instead of insmod
 
-OVS_PATH="/home/csikor/openvswitch-2.5.5"
+OVS_PATH="/home/csikor/openvswitch-2.10.0"
 OVSDB_PATH="${OVS_PATH}/ovsdb"
 OVSVSWITCHD_PATH="${OVS_PATH}/vswitchd"
-OVSVUTILITIES_PATH="${OVS_PATH}/utilities"
+OVSUTILITIES_PATH="${OVS_PATH}/utilities"
 OVS_MODPATH="${OVS_PATH}/datapath/linux/openvswitch.ko"
 
 #COLORIZING
@@ -75,42 +75,42 @@ else
   # we need to ensure that out-of-tree module will be loaded
   # without being signed - we create a self sign certificate
   # and sign the compiled openvswitch.ko module
-  sudo apt-get install openssl libssl-dev
+  sudo apt-get install openssl libssl-dev -y
   echo -e "${orange}Install kernel headers${none}"
   sudo apt-get install linux-headers-`uname -r`
-  echo -ne "${orange}Create self sign certificate${none}"
-  # TODO: ensure whether kernel uses SHA512 for signing modules
-  # - to get to know: cat /boot/config-`uname -r` |grep CONFIG_MODULE_SIG
-  # look for CONFIG_MODULE_SIG_XXX, where XXX should be SHA512
-  # look for CONFIG_MODULE_SIG_HASH="used hash algorithm"
-  sudo openssl req -new -x509 -sha512 -newkey rsa:2048 -nodes -keyout key.pem \
-       -days 365 -out certificate.pem
-  sudo /usr/src/linux-headers-`uname -r`/sign-file sha512 key.pem certificate.pem \
-       $OVS_PATH/datapath/linux/openvswitch.ko
-  #TODO: check return value
-  echo -e "\t\t${bold}${green}[DONE]${none}"
+  echo -e "${orange}Create self sign certificate${none}"
+  if [ ! -e key.pem ]
+  then
+    # TODO: ensure whether kernel uses SHA512 for signing modules
+    # - to get to know: cat /boot/config-`uname -r` |grep CONFIG_MODULE_SIG
+    # look for CONFIG_MODULE_SIG_XXX, where XXX should be SHA512
+    # look for CONFIG_MODULE_SIG_HASH="used hash algorithm"
+    sudo openssl req -new -x509 -sha512 -newkey rsa:4096 -nodes -keyout key.pem \
+         -days 36500 -out certificate.pem
+    sudo /usr/src/linux-headers-`uname -r`/scripts/sign-file sha512 key.pem certificate.pem $OVS_MODPATH
+    #TODO: check return value
+    echo -e "\t\t${bold}${green}[DONE]${none}"
+  fi
   echo -e "${orange}Loading dependencies as insmod does not do it${none}"
-  echo -e "${orange}Get the list of dependencies via built-in kernel module${none}"
-  for i in $(modprobe --show-depends openvswitch|cut -d ' ' -f 2)
+  for i in $(modprobe --show-depends openvswitch|grep -v openvswitch|cut -d ' ' -f 2)
   do
     module_name=$(echo "${i##*/}" | sed  "s/.ko//")
-    echo -e "${orange}Inserting module ${module_name}${none}"
+    echo -e "${orange}Inserting dependency module ${module_name}${none}"
     sudo modprobe $module_name
   done
   echo -e "\t\t${bold}${green}[DONE]${none}"
-  echo -e "${orange}Inserting additional modules"
   # add additional modules to the list by expanding and separating it with a space
   additional_modules="ip6_tunnel"
   for i in $additional_modules
   do
      sudo modprobe $i
+     echo -e "${orange}Inserting additional module: ${i}"
   done
   echo -e "\t\t${bold}${green}[DONE]${none}"
-  echo -e "${yello}Inserting the compiled kernel module via insmod"
-  sudo insmod $OVS_PATH/datapath/linux/openvswitch.ko 2>&1
+  echo -e "${yellow}Inserting the compiled kernel module via insmod"
+  sudo insmod $OVS_MODPATH 2>&1
   # TODO: check retval
   echo -e "\t\t${bold}${green}[DONE]${none}"
-
 fi
 
 echo -e "\t\t${bold}${green}[DONE]${none}"
@@ -119,9 +119,9 @@ echo -e "\t\t${bold}${green}[DONE]${none}"
 echo -ne "${yellow}Delete preconfigured ovs data${none}"
 if [ $OVS_PATH_SET -eq 0 ]
 then
-  sudo rm -rf /etc/openvswitch/conf.db
+  sudo rm -rf /etc/openvswitch/conf.db 2>&1
 else
-  sudo rm -rf /usr/local/etc/openvswitch/conf.db
+  sudo rm -rf /usr/local/etc/openvswitch/conf.db 2>&1
 fi
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
@@ -137,7 +137,7 @@ if [ $OVS_PATH_SET -eq 0 ]
 then
   sudo ovsdb-tool create /etc/openvswitch/conf.db  /usr/share/openvswitch/vswitch.ovsschema
 else
-  sudo $OVSDB_PATH/ovsdb-tool create /usr/local/etc/openvswitch/conf.db  $OVSVSWITCHD_PATH/vswitchd/vswitch.ovsschema
+  sudo $OVSDB_PATH/ovsdb-tool create /usr/local/etc/openvswitch/conf.db  $OVSVSWITCHD_PATH/vswitch.ovsschema
 fi
 
 echo -e "\t\t${bold}${green}[DONE]${none}"
