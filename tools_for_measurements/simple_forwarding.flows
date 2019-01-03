@@ -1,0 +1,3 @@
+table=0,priority=1000,in_port=3,actions=output:1
+table=0,priority=1000,in_port=1 actions=output:3
+table=0,priority=1000,in_port=2 actions=output:3
