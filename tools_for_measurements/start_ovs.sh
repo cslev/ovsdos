@@ -72,7 +72,45 @@ if [ $OVS_MODPROBE -eq 1 ]
 then
   sudo modprobe openvswitch 2>&1
 else
+  # we need to ensure that out-of-tree module will be loaded
+  # without being signed - we create a self sign certificate
+  # and sign the compiled openvswitch.ko module
+  sudo apt-get install openssl libssl-dev
+  echo -e "${orange}Install kernel headers${none}"
+  sudo apt-get install linux-headers-`uname -r`
+  echo -ne "${orange}Create self sign certificate${none}"
+  # TODO: ensure whether kernel uses SHA512 for signing modules
+  # - to get to know: cat /boot/config-`uname -r` |grep CONFIG_MODULE_SIG
+  # look for CONFIG_MODULE_SIG_XXX, where XXX should be SHA512
+  # look for CONFIG_MODULE_SIG_HASH="used hash algorithm"
+  sudo openssl req -new -x509 -sha512 -newkey rsa:2048 -nodes -keyout key.pem \
+       -days 365 -out certificate.pem
+  sudo /usr/src/linux-headers-`uname -r`/sign-file sha512 key.pem certificate.pem \
+       $OVS_PATH/datapath/linux/openvswitch.ko
+  #TODO: check return value
+  echo -e "\t\t${bold}${green}[DONE]${none}"
+  echo -e "${orange}Loading dependencies as insmod does not do it${none}"
+  echo -e "${orange}Get the list of dependencies via built-in kernel module${none}"
+  for i in $(modprobe --show-depends openvswitch|cut -d ' ' -f 2)
+  do
+    module_name=$(echo "${i##*/}" | sed  "s/.ko//")
+    echo -e "${orange}Inserting module ${module_name}${none}"
+    sudo modprobe $module_name
+  done
+  echo -e "\t\t${bold}${green}[DONE]${none}"
+  echo -e "${orange}Inserting additional modules"
+  # add additional modules to the list by expanding and separating it with a space
+  additional_modules="ip6_tunnel"
+  for i in $additional_modules
+  do
+     sudo modprobe $i
+  done
+  echo -e "\t\t${bold}${green}[DONE]${none}"
+  echo -e "${yello}Inserting the compiled kernel module via insmod"
   sudo insmod $OVS_PATH/datapath/linux/openvswitch.ko 2>&1
+  # TODO: check retval
+  echo -e "\t\t${bold}${green}[DONE]${none}"
+
 fi
 
 echo -e "\t\t${bold}${green}[DONE]${none}"
