@@ -1,0 +1,136 @@
+# How to sign a compile module
+```
+sudo apt-get install openssl libssl-dev -y
+```
+
+##Install kernel headers
+```
+sudo apt-get install linux-headers-$(uname -r)
+```
+
+##Create self sign certificate
+TODO: ensure whether kernel uses SHA512 for signing modules
+  - to get to know: cat /boot/config-$(uname -r) |grep CONFIG_MODULE_SIG
+  -  look for CONFIG_MODULE_SIG_XXX, where XXX should be SHA512
+  -  look for CONFIG_MODULE_SIG_HASH="used hash algorithm"
+```
+sudo openssl req -new -x509 -sha512 -newkey rsa:4096 -nodes -keyout key.pem \
+         -days 36500 -out certificate.pem
+
+sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha512 key.pem certificate.pem /home/csikor/ovs/datapath/linux/openvswitch.ko
+```
+
+
+# Installing module instead of insmod-ing the compiled one
+When installing openvswitch module from the source via make modules_install command,
+it also needs a certificate to sign the module
+If you encounter something like this:
+```
+...
+- SSL error:02001002:system library:fopen:No such file or directory:
+../crypto/bio/bss_file.c:74
+- SSL error:2006D080:BIO routines:BIO_new_file:no such file:
+../crypto/bio/bss_file.c:81
+sign-file: certs/signing_key.pem: No such file or directory
+  INSTALL /home/csikor/openvswitch-2.10.0/datapath/linux/vport-
+geneve.ko
+...
+```
+This also means that certificates and signing keys are necessary for the compiler as well.
+To resolve this issue, copy the `key.pem` and the `certificate.pem` to the right directory 
+as follows:
+```
+$ sudo cp key.pem /usr/src/linux-headers-$(uname -r)/certs/signing_key.pem
+$ sudo cp certificate.pem /usr/src/linux-headers-$(uname -r)/certs/signing_key.x509
+```
+Then, in the OVS root directory issue the make modules_install command again
+```
+$ sudo make modules_install
+```
+
+Once it is done, the new module will be installed in /lib/modules/$(uname -r)/extra
+
+## Create a directory for the new module:
+```
+$ sudo mkdir /lib/modules/$(uname -r)/kernel/net/openvswitch2.10.0
+```
+
+## Copy the compiled module(s) of the new openvswitch found in
+/lib/modules/$(uname -r)/extra 
+```
+$ sudo cp /lib/modules/$(uname -r)/extra/* /lib/modules/$(uname -r)/kernel/net/openvswitch2.10.0
+```
+
+## Try depmod -a (not sure if it was necessary)
+```
+$ sudo depmod -a
+```
+it should return no error!
+
+## Insert your module
+Your module should be called openvswitch2, but make sure of this by, say:
+```
+modinfo openvswitch2
+```
+If it returns the information, then you can also rest assured that this module is the one you need,
+i.e., you can see, besides many information, the path to the module as well as the version.
+
+In case it does not return anything useful, you need to manually look for the name.
+In case you have named the modules something different, then it won't be openvswitch2.
+It is openvswitch2 for me, because its name is openvswitch2 before the first dot ('.').
+Try the following command to figure out your exact module name:
+```
+$ sudo grep -ri "openvswitch" /lib/modules/$(uname -r)/modules.*
+```
+There should be a hit at least in the modules.symbols and modules.dep file.
+
+### Insert finally your module
+```
+$ sudo modprobe openvswitch2
+```
+
+## Assure yourself
+Assuming you installed openvswitch 2.10.0
+### Step 1
+There were no error during module loading!
+```
+$ sudo dmesg |tail -n 8
+```
+It should print out something like this:
+```
+[ 2246.954479] openvswitch: Open vSwitch switching datapath 2.10.0
+[ 2246.954543] openvswitch: LISP tunneling driver
+[ 2246.954543] GRE over IPv4 demultiplexor driver
+[ 2246.955181] openvswitch: GRE over IPv4 tunneling driver
+[ 2246.955376] openvswitch: GRE over IPv6 tunneling driver
+[ 2246.955575] openvswitch: Geneve tunneling driver
+[ 2246.955579] openvswitch: VxLAN tunneling driver
+[ 2246.955580] openvswitch: STT tunneling driver
+```
+
+### Step 2
+It has indeed been loaded and became the part of the system!
+```
+$ sudo lsmod |grep openvswitch
+```
+Output should be something like this:
+```
+openvswitch           294912  0
+tunnel6                16384  1 openvswitch
+nf_nat_ipv6            16384  1 openvswitch
+nf_defrag_ipv6         36864  2 nf_conntrack_ipv6,openvswitch
+nf_nat_ipv4            16384  2 openvswitch,iptable_nat
+nf_nat                 32768  4 openvswitch,nf_nat_ipv6,nf_nat_masquerade_ipv4,nf_nat_ipv4
+nf_conntrack          131072  10 nf_conntrack_ipv6,openvswitch,nf_conntrack_ipv4,ipt_MASQUERADE,nf_conntrack_netlink,nf_nat_ipv6,nf_nat_masquerade_ipv4,xt_conntrack,nf_nat_ipv4,nf_nat
+libcrc32c              16384  3 openvswitch,nf_conntrack,nf_nat
+```
+
+### Step 3
+The loaded module is indeed the module you wanted, i.e., check the version!
+```
+$ sudo cat /sys/module/openvswitch/version
+```
+It should be 2.10.0!
+
+## Cheers, m8!
+
