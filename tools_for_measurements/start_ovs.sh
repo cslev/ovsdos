@@ -1,7 +1,7 @@
 #!/bin/bash
 #set here which binaries you want to use!
-OVS_PATH_SET=1 #if set to 0, then /usr/[local]/bin/ binaries will be used
-
+OVS_PATH_SET=0 #if set to 0, then /usr/[local]/bin/ binaries will be used
+OVS_MODULE_NAME="openvswitch2"
 
 # ALWAYS USE MODPROBE INSTEAD OF INSMOD
 # IF YOU DO NOT KNOW HOW TO INSTALL A KERNEL MODULE THAT DOES NOT OVERWRITE YOUR CURRENT ONE
@@ -73,7 +73,7 @@ fi
 
 ptcp_port=16633
 echo -ne "${yellow}Adding OVS kernel module${none}"
-sudo modprobe openvswitch 2>&1
+sudo modprobe $OVS_MODULE_NAME 2>&1
 
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
