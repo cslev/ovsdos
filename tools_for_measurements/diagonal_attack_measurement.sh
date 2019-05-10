@@ -17,10 +17,17 @@ do
   c_print "green" "[DONE]"
 
   c_print "blue" "[MAIN THREAD]\t Launching the attack..."
-  sudo ip netns exec ns1 python send_diagonal_attack_dstport.py &
+  sudo ip netns exec ns1 python send_diagonal_attack_dstport.py & 2>&1
   PID=$(cat diagonal_attack.pid)
 
-  sleep 15s
+  c_print "blue" "[MAIN THREAD]\t Waiting megaflow cache to be populated" 0
+  for i in {1..15}
+  do
+    c_print "none" ". " 0
+    sleep 1
+  done
+
+  c_print "blue" "[MAIN THREAD]\t Getting MFC entries/masks..."
   MASK_NUM=$(ovs-dpctl show|grep masks|grep total|awk '{print $3}'|cut -d ':' -f 2)
 
   c_print "blue" "[MAIN THREAD]\t Measurement with port number ${i} is done"
@@ -29,6 +36,7 @@ do
   sudo kill -9 $PID
   c_print "green" "[DONE]"
 
+  c_print "green" "[MAIN THREAD] ${i}, ${MASK_NUM}"
   c_print "blue" "[MAIN THREAD]\t Saving results..." 0
   echo "${i}, ${MASK_NUM}" >> diagonal_measurement.csv
   c_print "green" "[DONE]"
