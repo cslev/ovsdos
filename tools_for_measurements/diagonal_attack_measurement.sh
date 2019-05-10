@@ -18,6 +18,7 @@ do
 
   c_print "blue" "[MAIN THREAD]\t Launching the attack..."
   sudo ip netns exec ns1 python send_diagonal_attack_dstport.py & 2>&1
+  PID2=$(echo $!)
   PID=$(cat diagonal_attack.pid)
 
   c_print "blue" "[MAIN THREAD]\t Waiting megaflow cache to be populated (15 sec)" 0
@@ -34,7 +35,7 @@ do
   c_print "blue" "[MAIN THREAD]\t Measurement with port number ${PORT} is done"
   c_print "yellow" "[MAIN THREAD]\t Killing attacker" 0
   sudo kill -9 $PID
-  sudo kill -9 $PID
+  sudo kill -9 $PID2
   c_print "green" "[DONE]"
 
   c_print "green" "[MAIN THREAD] ${PORT}, ${MASK_NUM}"
