@@ -42,6 +42,7 @@ do
   do
     kill -9 $PID
   done
+  sleep 2
   c_print "green" "[DONE]"
 
   c_print "green" "[MAIN THREAD] ${PORT}, ${MASK_NUM}"
