@@ -18,8 +18,8 @@ do
 
   c_print "blue" "[MAIN THREAD]\t Launching the attack..."
   sudo ip netns exec ns1 python send_diagonal_attack_dstport.py & 2>&1
-  PID2=$(echo $!)
-  PID=$(cat diagonal_attack.pid)
+  #PID2=$(echo $!)
+  #PID=$(cat diagonal_attack.pid)
 
   c_print "blue" "[MAIN THREAD]\t Waiting megaflow cache to be populated (15 sec)" 0
   for i in {1..15}
@@ -34,8 +34,14 @@ do
 
   c_print "blue" "[MAIN THREAD]\t Measurement with port number ${PORT} is done"
   c_print "yellow" "[MAIN THREAD]\t Killing attacker" 0
-  sudo kill -9 $PID
-  sudo kill -9 $PID2
+  #sudo kill -9 $PID
+  #sudo kill -9 $PID2
+  # does not work, since ip netns command will have a different PID and we always get the wrong one
+  # just iterate through ps aux and do the job
+  for PID in $(ps aux|grep send_diagonal_attack_dstport.py|grep -v "grep"|awk '{print $2}')
+  do
+    kill -9 $PID
+  done
   c_print "green" "[DONE]"
 
   c_print "green" "[MAIN THREAD] ${PORT}, ${MASK_NUM}"
