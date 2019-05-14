@@ -71,13 +71,28 @@ function generate_random_number () {
 }
 # ------------------------------
 
-
+function print_help {
+  echo
+  # c_print "none" "Add random allow rule on destination port to OVS with a catch-all drop rule"
+  c_print "none" "Usage:" 0
+  c_print "bold" "./random_attack_measurement.sh  <number_of_random_ports_to_attack> <iterations>"
+  c_print "none" "Example:"
+  c_print "none" "./random_attack_measurement.sh 2 100"
+  echo
+  exit -1
+}
 # ============ MAIN ============
 # FIRST ARGUMENT: Number of different random port numbers to generate attacking trace to
 # SECOND ARGUMENT: Number of iterations (to spread the results evenly due to randomness)
 NUMBER_OF_RANDOM_PORTS_TO_ATTACK=$1
 ITERATION=$2
 
+# ============ PARSING ARGS ======
+if [ $# -ne 2 ]
+then
+  c_print "red" "Insufficient number of attributes"
+  print_help
+fi
 
 
 echo "i, rnd_port_no_rule, rnd_port_numbers, megaflow_entries" > random_attack_measurement.csv
