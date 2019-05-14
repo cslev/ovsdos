@@ -1,7 +1,7 @@
 #!/bin/bash
 #set here which binaries you want to use!
 OVS_PATH_SET=0 #if set to 0, then /usr/[local]/bin/ binaries will be used
-OVS_MODULE_NAME="openvswitch2"
+OVS_MODULE_NAME="openvswitch"
 
 # ALWAYS USE MODPROBE INSTEAD OF INSMOD
 # IF YOU DO NOT KNOW HOW TO INSTALL A KERNEL MODULE THAT DOES NOT OVERWRITE YOUR CURRENT ONE
@@ -43,21 +43,25 @@ function show_help
 {
   echo -e "${red}${bold}Arguments not set properly!${none}"
   echo -e "${green}Example: sudo ./start_ovs.sh -o ovsbr ${none}"
-  echo -e "\t\t-o <name>: name of the OVS bridge"
+  echo -e "\t\t-n <name>: name of the OVS bridge"
+  echo -e "\t\t-d <path_to_db.sock>: Path where db.sock will be created!"
 
   exit
 }
 
 DBR=""
 
-while getopts "h?o:" opt
+while getopts "h?n:d:" opt
 do
   case "$opt" in
   h|\?)
     show_help
     ;;
-  o)
+  n)
     DBR=$OPTARG
+    ;;
+  d)
+   DB_SOCK=$OPTARG
     ;;
   *)
     show_help
@@ -69,6 +73,15 @@ if [[ "$DBR" == "" ]]
 then
   show_help
 fi
+
+if [[ "$DB_SOCK" == "" ]]
+then
+  echo -e "${yellow}No DB_SOCK has been set, using defaults (/usr/local/var/run/openvswitch/db.sock)${none}"
+  DB_SOCK=/usr/local/var/run/openvswitch
+fi
+
+mkdir -p $DB_SOCK
+DB_SOCK="${DB_SOCK}/db.sock"
 
 
 ptcp_port=16633
@@ -114,9 +127,9 @@ fi
 echo -ne "${yellow}Start ovsdb-server...${none}"
 if [ $OVS_PATH_SET -eq 0 ]
 then
-  sudo ovsdb-server --remote=punix:/var/run/openvswitch/db.sock --remote=db:Open_vSwitch,Open_vSwitch,manager_options --pidfile --detach
+  sudo ovsdb-server --remote=punix:$DB_SOCK --remote=db:Open_vSwitch,Open_vSwitch,manager_options --pidfile --detach
 else
-  sudo $OVSDB_PATH/ovsdb-server --remote=punix:/usr/local/var/run/openvswitch/db.sock --remote=db:Open_vSwitch,Open_vSwitch,manager_options --pidfile --detach
+  sudo $OVSDB_PATH/ovsdb-server --remote=punix:$DB_SOCK --remote=db:Open_vSwitch,Open_vSwitch,manager_options --pidfile --detach
 fi
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
@@ -128,14 +141,16 @@ else
   sudo $OVSUTILITIES_PATH/ovs-vsctl --no-wait init
 fi
 
-echo -ne "${yellow}exporting environmental variable DB_SOCK${none}"
-if [ $OVS_PATH_SET -eq 0 ]
-then
-  export DB_SOCK=/var/run/openvswitch/db.sock
-else
-  export DB_SOCK=/usr/local/var/run/openvswitch/db.sock
-fi
-echo -e "${bold}${green}\t\t[DONE]${none}"
+
+# CAN NOW BE SET AS RUNTIME ARGUMENT
+#echo -ne "${yellow}exporting environmental variable DB_SOCK${none}"
+#if [ $OVS_PATH_SET -eq 0 ]
+#then
+#  export DB_SOCK=/var/run/openvswitch/db.sock
+#else
+#  export DB_SOCK=/usr/local/var/run/openvswitch/db.sock
+#fi
+#echo -e "${bold}${green}\t\t[DONE]${none}"
 
 echo -ne "${yellow}start vswitchd...${none}"
 if [ $OVS_PATH_SET -eq 0 ]
