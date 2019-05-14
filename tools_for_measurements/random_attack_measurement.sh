@@ -95,7 +95,7 @@ then
 fi
 
 
-echo "i, rnd_port_no_rule, rnd_port_numbers, megaflow_entries" > random_attack_measurement.csv
+echo "i, rnd_ACL_port, rnd_ATTACK_ports, megaflow_entries" > "random_attack_measurement_port_num_${NUMBER_OF_RANDOM_PORTS_TO_ATTACK}.csv"
 
 for iter in $(seq 1 $ITERATION)
 do
@@ -107,6 +107,7 @@ do
   sleep 1
   c_print "green" "[DONE]"
 
+  rm -rf tmp_*pcap
 
   c_print "blue" "[MAIN THREAD]\t Generating pcap file for random port:"
   RANDOM_PORT_TO_ATTACK_AS_ONE_STRING=""
