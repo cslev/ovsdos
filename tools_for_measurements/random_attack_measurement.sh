@@ -139,7 +139,7 @@ do
 
   c_print "green" "[MAIN THREAD] ${iter}, ${RANDOM_PORT_TO_ACL}, ${RANDOM_PORT_TO_ATTACK_AS_ONE_STRING}, ${MASK_NUM}"
 
-  echo "${iter}, ${RANDOM_PORT_TO_ACL}, ${RANDOM_PORT_TO_ATTACK_AS_ONE_STRING}, ${MASK_NUM}" >> random_attack_measurement.csv
+  echo "${iter}, ${RANDOM_PORT_TO_ACL}, ${RANDOM_PORT_TO_ATTACK_AS_ONE_STRING}, ${MASK_NUM}" >> "random_attack_measurement_port_num_${NUMBER_OF_RANDOM_PORTS_TO_ATTACK}.csv"
   c_print "green" "[DONE]"
 
   c_print "blue" "[MAIN THREAD]\t Waiting the flow caches to reset (11 sec)"
