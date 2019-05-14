@@ -119,7 +119,7 @@ do
     else
       RANDOM_PORT_TO_ATTACK_AS_ONE_STRING="${RANDOM_PORT_TO_ATTACK_AS_ONE_STRING},${RANDOM_PORT_TO_ATTACK[${i}]}"
     fi
-    python $PCAP_GENERATOR_SCRIPT -t DP -f $RANDOM_PORT_TO_ATTACK[$i] -o "tmp_${i}"
+    python $PCAP_GENERATOR_SCRIPT -t DP -f "${RANDOM_PORT_TO_ATTACK[${i}]}" -o "tmp_${i}"
     c_print "green" "[DONE]"
   done
 
