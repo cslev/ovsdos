@@ -41,7 +41,8 @@ then
 fi
 
 
-for i in $(seq 1 $NUMBER_OF_RANDOM_PORTS_TO_ATTACK)
+# we start from 17, otherwise it does not make any sense
+for i in $(seq 17 $NUMBER_OF_RANDOM_PORTS_TO_ATTACK)
 do
   echo "i, megaflow_entries" > "random_attack_measurement_portnum_${i}.csv"
 
@@ -62,6 +63,13 @@ do
     c_print "blue" "[MAIN THREAD]\t ${iter} iteration is ready"
     c_print "green" "[MAIN THREAD]\t ${iter}, ${MASK_NUM}"
     echo "${iter}, ${MASK_NUM}" >> "random_port_to_attack_measurement_port_num_${i}.csv"
+
+    c_print "blue" "[MAIN THREAD]\t Waiting the flow caches to reset (11 sec)"
+    for i in {1..11}
+    do
+      c_print "none" "." 0
+      sleep 1
+    done
   done
 
   c_print "green" "[MAIN THREAD]\t Measurement with ${i} random ports is done"
