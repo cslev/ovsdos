@@ -47,21 +47,25 @@ def send(loop, port_list):
                 /UDP(sport=12345,dport=port)))
             # p.show()
 
-            sendp(p, iface="ns1_veth_ns", verbose=False)
+            sendp(p, iface=interface, verbose=False)
 
 
 parser = argparse.ArgumentParser(description="Usage of all K bitwidth on dst port generator",
-                                 usage="python generate_all_k_bitwidth_dst_port.py -l LOOP -b BITWIDTH -k NUMBER_OF_BITS_TO_HAVE_ALL_POSSIBILITES",
+                                 usage="python generate_all_k_bitwidth_dst_port.py -l LOOP -b BITWIDTH -k NUMBER_OF_BITS_TO_HAVE_ALL_POSSIBILITES -i INTERFACE",
                                  formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-l','--loop',nargs=1,required=True)
 parser.add_argument('-b','--bitwidth',nargs=1,required=False,default=["16"])
 parser.add_argument('-k','--kk',nargs=1,required=True)
-parser.add_argument('-i','--interface',nargs=1,required=False,default=["ns1_veth_ns"])
+parser.add_argument('-i','--interface',nargs=1,required=False,default=["ns1_veth_ns"],
+help="Specify the interface, default is: ns1_veth_ns")
 
 args = parser.parse_args()
 loop=int(args.loop[0])
 bitwidth=int(args.bitwidth[0])
 k=int(args.kk[0])
+
+#setting the interface
+interface=args.interface[0]
 
 print generate_packets(k,bitwidth)
 send(loop, generate_packets(k, bitwidth))
