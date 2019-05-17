@@ -25,7 +25,7 @@
 # 1) Open vSwitch bridge is running with name 'ovsbr' (without quotes).
 # 2) Two network namespaces are connected to ovsbr, namely ns1 and ns2.
 # 3) The attack is coming from ns1, and its NIC name is ns1_veth_ns.
-# 4) Wireshark, tcpreplay are installed in the base system to merge pcap files and replay them
+# 4) Wireshark, tcpreplay is installed in the base system to merge pcap files and replay them
 # ------------------------------------
 
 source colorized_output.sh
@@ -75,9 +75,9 @@ function print_help {
   echo
   # c_print "none" "Add random allow rule on destination port to OVS with a catch-all drop rule"
   c_print "none" "Usage:" 0
-  c_print "bold" "./random_port_to_attack_measurement.sh  <number_of_random_ports_to_attack> <iterations>"
+  c_print "bold" "./random_attack_measurement.sh  <number_of_random_ports_to_attack> <iterations>"
   c_print "none" "Example:"
-  c_print "none" "./random_port_to_attack_measurement.sh 2 100"
+  c_print "none" "./random_attack_measurement.sh 2 100"
   echo
   exit -1
 }
@@ -95,7 +95,7 @@ then
 fi
 
 
-echo "i, rnd_ACL_port, rnd_ATTACK_ports, megaflow_entries" > "random_port_to_attack_measurement_port_num_${NUMBER_OF_RANDOM_PORTS_TO_ATTACK}.csv"
+echo "i, rnd_ACL_port, rnd_ATTACK_ports, megaflow_entries" > "random_attack_measurement_port_num_${NUMBER_OF_RANDOM_PORTS_TO_ATTACK}.csv"
 
 for iter in $(seq 1 $ITERATION)
 do
@@ -124,7 +124,7 @@ do
     c_print "green" "[DONE]"
   done
 
-  c_print "blue" "[MAIN THREAD]\t Merging pcap files to one..." 0
+  c_print "blue" "[MAIN_THREAD]\t Merging pcap files to one..." 0
   mergecap -a -w tmp_merged.pcap tmp_*.64*pcap
   c_print "green" "[DONE]"
 
@@ -139,7 +139,7 @@ do
 
   c_print "green" "[MAIN THREAD] ${iter}, ${RANDOM_PORT_TO_ACL}, ${RANDOM_PORT_TO_ATTACK_AS_ONE_STRING}, ${MASK_NUM}"
 
-  echo "${iter}, ${RANDOM_PORT_TO_ACL}, ${RANDOM_PORT_TO_ATTACK_AS_ONE_STRING}, ${MASK_NUM}" >> "random_port_to_attack_measurement_port_num_${NUMBER_OF_RANDOM_PORTS_TO_ATTACK}.csv"
+  echo "${iter}, ${RANDOM_PORT_TO_ACL}, ${RANDOM_PORT_TO_ATTACK_AS_ONE_STRING}, ${MASK_NUM}" >> "random_attack_measurement_port_num_${NUMBER_OF_RANDOM_PORTS_TO_ATTACK}.csv"
   c_print "green" "[DONE]"
 
   c_print "blue" "[MAIN THREAD]\t Waiting the flow caches to reset (11 sec)"
