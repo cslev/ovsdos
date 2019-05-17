@@ -63,7 +63,7 @@ do
     echo "${iter}, ${MASK_NUM}" >> "random_attack_measurement_port_num_${i}.csv"
 
     c_print "blue" "[MAIN THREAD]\t Waiting the flow caches to reset (11 sec)"
-    for i in {1..11}
+    for iii in {1..11}
     do
       c_print "none" "." 0
       sleep 1
