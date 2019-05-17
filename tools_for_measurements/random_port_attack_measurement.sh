@@ -17,6 +17,16 @@
 
 source colorized_output.sh
 
+function print_help {
+  echo
+  # c_print "none" "Add random allow rule on destination port to OVS with a catch-all drop rule"
+  c_print "none" "Usage:" 0
+  c_print "bold" "./random_port_attack_measurement.sh  <number_of_random_ports> <iterations>"
+  c_print "none" "Example:"
+  c_print "none" "./random_port_attack_measurement.sh 65535 100"
+  echo
+  exit -1
+}
 
 # ============ MAIN ============
 # FIRST ARGUMENT: Number of different random port numbers to generate attacking trace to
