@@ -19,32 +19,30 @@ source colorized_output.sh
 
 function print_help {
   echo
-  # c_print "none" "Add random allow rule on destination port to OVS with a catch-all drop rule"
+  c_print "none" "Add random allow rule on destination port to OVS with a catch-all drop rule and send 17,20,25,50,100,500,1000,2000,5000,8000, and 10000 random ports with 10000 packets"
   c_print "none" "Usage:" 0
-  c_print "bold" "./random_port_attack_measurement.sh  <number_of_random_ports> <iterations>"
+  c_print "bold" "./random_port_attack_measurement.sh  <iterations>"
   c_print "none" "Example:"
-  c_print "none" "./random_port_attack_measurement.sh 65535 100"
+  c_print "none" "./random_port_attack_measurement.sh 100"
   echo
   exit -1
 }
 
 # ============ MAIN ============
-# FIRST ARGUMENT: Number of different random port numbers to generate attacking trace to
-# SECOND ARGUMENT: Number of iterations (to spread the results evenly due to randomness)
-NUMBER_OF_RANDOM_PORTS_TO_ATTACK=$1
-ITERATION=$2
+# FIRST ARGUMENT: Number of iterations (to spread the results evenly due to randomness)
+ITERATION=$1
 # ============ PARSING ARGS ======
-if [ $# -ne 2 ]
+if [ $# -ne 1 ]
 then
   c_print "red" "Insufficient number of attributes"
   print_help
 fi
 
-
 # we start from 17, otherwise it does not make any sense
-for i in $(seq 17 $NUMBER_OF_RANDOM_PORTS_TO_ATTACK)
+# then we generate 20, 25, 50 .... random ports and packets accordingly
+for i in 17 20 25 50 100 500 1000 2000 5000 8000 10000
 do
-  echo "i, megaflow_entries" > "random_attack_measurement_portnum_${i}.csv"
+  echo "i, megaflow_entries" > "random_attack_measurement_port_num_${i}.csv"
 
   for iter in $(seq 1 $ITERATION)
   do
@@ -62,7 +60,7 @@ do
 
     c_print "blue" "[MAIN THREAD]\t ${iter} iteration is ready"
     c_print "green" "[MAIN THREAD]\t ${iter}, ${MASK_NUM}"
-    echo "${iter}, ${MASK_NUM}" >> "random_port_to_attack_measurement_port_num_${i}.csv"
+    echo "${iter}, ${MASK_NUM}" >> "random_attack_measurement_port_num_${i}.csv"
 
     c_print "blue" "[MAIN THREAD]\t Waiting the flow caches to reset (11 sec)"
     for i in {1..11}
