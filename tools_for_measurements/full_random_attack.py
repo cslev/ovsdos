@@ -87,4 +87,6 @@ if n > pow(2,bitwidth):
 
 
 
-print generate_packets(n, bitwidth)
+ports=generate_packets(n, bitwidth)
+print ports
+send(loop, ports)
