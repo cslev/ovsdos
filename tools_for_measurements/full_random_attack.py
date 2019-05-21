@@ -11,12 +11,15 @@ import os
 from scapy.all import IP,UDP,TCP,Ether,sendp
 import argparse
 import random
-
+import ipaddress
 
 PID=str(os.getpid())
-PID_FILE='all_k_bit.pid'
+PID_FILE='full_random_attack.pid'
 file(PID_FILE, 'w').write(PID)
 
+
+def getRandomIP():
+    return str(ipaddress.IPV4Address(random.randint(1,0xffffffff))
 
 def generate_new_random_number(list_of_random_numbers, bit_width):
     '''
