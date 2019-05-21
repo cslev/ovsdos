@@ -12,6 +12,7 @@ from scapy.all import IP,UDP,TCP,Ether,sendp
 import argparse
 import random
 
+
 PID=str(os.getpid())
 PID_FILE='all_k_bit.pid'
 file(PID_FILE, 'w').write(PID)
@@ -29,7 +30,7 @@ def generate_new_random_number(list_of_random_numbers, bit_width):
     # #we need to prevent looping the recursion
     # if(len(list_of_random_numbers) < pow(2,bitwidth)-1):
     if r in list_of_random_numbers:
-        print "regenerate as {} already exists".format(r)
+        # print "regenerate as {} already exists".format(r)
         return generate_new_random_number(list_of_random_numbers, bit_width)
     else:
         return r
@@ -65,12 +66,18 @@ parser = argparse.ArgumentParser(description="Generate a certain number of uniqu
                                  usage="python full_random_attack.py -l LOOP -b BITWIDTH -n NUMBER_OF_PACKETS -i INTERFACE",
                                  formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-l','--loop', nargs=1, required=True,
-help="Specify how many times you want to generate and send NUMBER_OF_PACKETS packets! ")
+help="Specify how many times you want to generate and send NUMBER_OF_PACKETS packets! Use -l 0 to only print the ports! Useful for generating input to other programs")
 parser.add_argument('-b','--bitwidth', nargs=1, required=False,default=["16"],
 help="Pay attention to uniqueness, i.e., n < pow(2,bitwidth) !")
 parser.add_argument('-n','--nn', nargs=1, required=True,
 help="Pay attention to uniqueness, i.e., n < pow(2,bitwidth) !")
 parser.add_argument('-i','--interface', nargs=1, required=False, default=["ns1_veth_ns"], help="Specify the interface, default is: ns1_veth_ns")
+# parser.add_argument('-p','--print_only', action='store_true', required=False,
+# help="Print out only the ports that generated - useful for other scripts as input (default: False)",
+# dest='print_only')
+# parser.set_defaults(print_only=False)
+
+
 
 args = parser.parse_args()
 loop=int(args.loop[0])
@@ -80,6 +87,10 @@ n=int(args.nn[0])
 #setting the interface
 interface=args.interface[0]
 
+# print_only=args.print_only
+# print print_only
+
+
 if n > pow(2,bitwidth):
     print "ERROR - TOO MANY DIFFERENT NUMBERS ARE REQUIRED FOR THE GIVEN BIT WIDTH!"
     print "!!!   n < pow(2,bitwidth) !!!"
@@ -88,5 +99,6 @@ if n > pow(2,bitwidth):
 
 
 ports=generate_packets(n, bitwidth)
-print ports
+for p in ports:
+    print "dst_port={}".format(p)
 send(loop, ports)
