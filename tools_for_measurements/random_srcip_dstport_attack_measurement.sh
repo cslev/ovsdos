@@ -14,7 +14,7 @@ function print_help {
 
 ITERATION=100
 
-for i in 17 34 68 85 170 850 1700
+for i in 17 34 68 85 170 850 1700 2500 5000 7500 10000
 do
   echo "i, megaflow_entries" > "random_srcip_dstport_attack_${i}.csv"
 
