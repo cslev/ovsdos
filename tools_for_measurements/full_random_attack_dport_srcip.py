@@ -68,51 +68,46 @@ def generate_packets(n, bit_width):
 #
 #             sendp(p, iface=interface, verbose=False)
 #
-parser = argparse.ArgumentParser(description="Generate a certain number of unique random packets on a specified header field and repeat it for a certain number",
-                                 usage="python full_random_attack.py -l LOOP -b BITWIDTH -n NUMBER_OF_PACKETS -i INTERFACE",
+parser = argparse.ArgumentParser(description="Generate a certain number of random packets having different source IP and destination port (check out the arguments for details to have cross product)",
+                                 usage="python full_random_attack_dport_srcip.py -n <Number of packets> -c",
                                  formatter_class=argparse.RawTextHelpFormatter)
+
 # parser.add_argument('-l','--loop', nargs=1, required=True,
 # help="Specify how many times you want to generate and send NUMBER_OF_PACKETS packets! Use -l 0 to only print the ports! Useful for generating input to other programs")
 # parser.add_argument('-b','--bitwidth', nargs=1, required=False,default=["16"],
 # help="Pay attention to uniqueness, i.e., n < pow(2,bitwidth) !")
 parser.add_argument('-n','--nn', nargs=1, required=True,
-help="Number of different value for each header field! E.g., -n 16 means 16 random IP addresses combined with 16 random ports (resulting in 16*16 packets)")
-# parser.add_argument('-i','--interface', nargs=1, required=False, default=["ns1_veth_ns"], help="Specify the interface, default is: ns1_veth_ns")
-# parser.add_argument('-p','--print_only', action='store_true', required=False,
-# help="Print out only the ports that generated - useful for other scripts as input (default: False)",
-# dest='print_only')
-# parser.set_defaults(print_only=False)
-
+help="Number of different values for each header field! E.g., -n 16 means 16 random IP addresses with 16 random ports (resulting in 16 packets)")
+parser.add_argument('-c','--crossproduct', action='store_true', required=False, dest='crossproduct',
+help="Enabling crossproduct - For each random IP there will be <number of packets> (set by -n argument) different ports resulting in <number of packets> times <number of packets> packets, e.g., -n 16 means 16*16 packets")
+parser.set_defaults(crossproduct=False)
 
 
 args = parser.parse_args()
 # loop=int(args.loop[0])
 # bitwidth=int(args.bitwidth[0])
 n=int(args.nn[0])
-
-#setting the interface
-# interface=args.interface[0]
-
-# print_only=args.print_only
-# print print_only
-
-#
-# if n > pow(2,bitwidth):
-#     print "ERROR - TOO MANY DIFFERENT NUMBERS ARE REQUIRED FOR THE GIVEN BIT WIDTH!"
-#     print "!!!   n < pow(2,bitwidth) !!!"
-#     exit(-1)
+w=args.crossproduct
 
 
+print "Number of packets to be generated:"
+if w:
+    print("{}".format(n*n))
+else:
+    print("{}".format(n))
 
 ports=generate_packets(n, 16)
 tmp_ips=generate_packets(n, 32)
 ips=list()
+
+
 for i in tmp_ips:
     ips.append(convertInt2IP(i))
 
-for ip in ips:
-    for port in ports:
-        print ("src_ip={},dst_port={}").format(ip,port)
-# for p in ports:
-#     print "dst_port={}".format(p)
-# send(loop, ports)
+if w:
+    for ip in ips:
+        for port in ports:
+            print ("src_ip={},dst_port={}").format(ip,port)
+else:
+    for i,ip in enumerate(ips):
+        print ("src_ip={},dst_port={}").format(ip,ports[i])
