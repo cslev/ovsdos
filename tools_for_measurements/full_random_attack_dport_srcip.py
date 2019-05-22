@@ -110,8 +110,9 @@ ips=list()
 for i in tmp_ips:
     ips.append(convertInt2IP(i))
 
-for i,port in enumerate(ports):
-    print ("src_ip={},dst_port={}").format(ips[i],port)
+for ip in ips:
+    for port in ports:
+        print ("src_ip={},dst_port={}").format(ip,port)
 # for p in ports:
 #     print "dst_port={}".format(p)
 # send(loop, ports)
