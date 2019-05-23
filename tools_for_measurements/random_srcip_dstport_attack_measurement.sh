@@ -14,12 +14,18 @@ function print_help {
 
 ITERATION=100
 
-for i in 17 34 68 85 170 850 1700 2500 5000 7500 10000
+for i in 20000 50000 750000 100000
 do
   echo "i, megaflow_entries" > "random_srcip_dstport_attack_${i}.csv"
 
   for iter in $(seq 1 $ITERATION)
   do
+    c_print "blue" "[MAIN THREAD]\t Generate random packet sequence"
+    python full_random_attack_dport_srcip.py -n $i > ../pcap_generator/random_srcip_dport/SIP_DP_${i}_${iter}.csv
+    c_print "blue" "[MAIN THREAD]\t Generate pcap file from packet sequence"
+    python ../pcap_generator/pcap_generator_from_csv.py -i ../pcap_generator/random_srcip_dport/SIP_DP_${i}_${iter}.csv --dst_ip 10.0.0.2 -o ../pcap_generator/random_srcip_dport/SIP_DP_${i}_${iter}
+    c_print "green" "[DONE]"
+
     c_print "blue" "[MAIN THREAD]\t Add flow rule with a random port number"
     ./add_random_port_filter.sh ovsbr 1 65535
     sleep 1
