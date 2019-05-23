@@ -27,7 +27,7 @@ do
     c_print "green" "[DONE]"
 
     c_print "blue" "[MAIN THREAD]\t Add flow rule with a random port number"
-    ./add_random_port_filter.sh ovsbr 1 65535
+    ./add_random_port_filter.sh ovsbr 1 65535 1
     sleep 1
     c_print "green" "[DONE]"
 
