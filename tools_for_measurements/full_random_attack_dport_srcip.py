@@ -90,11 +90,11 @@ n=int(args.nn[0])
 w=args.crossproduct
 
 
-print "Number of packets to be generated:"
-if w:
-    print("{}".format(n*n))
-else:
-    print("{}".format(n))
+# print "Number of packets to be generated:"
+# if w:
+#     print("{}".format(n*n))
+# else:
+#     print("{}".format(n))
 
 ports=generate_packets(n, 16)
 tmp_ips=generate_packets(n, 32)
