@@ -35,7 +35,7 @@ def generate_new_random_number(list_of_random_numbers, bit_width):
     # #if bit_width is shorter than the number of random numbers we need
     # #we need to prevent looping the recursion
     # if(len(list_of_random_numbers) < pow(2,bitwidth)-1):
-    if r in list_of_random_numbers and len(list_of_random_numbers) < pow(2,bitwidth)-1:
+    if r in list_of_random_numbers and len(list_of_random_numbers) < pow(2,bit_width)-1:
         # print "regenerate as {} already exists".format(r)
         return generate_new_random_number(list_of_random_numbers, bit_width)
     else:
