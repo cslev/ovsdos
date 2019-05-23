@@ -14,7 +14,7 @@ function print_help {
 }
 
 # ============ PARSING ARGS ======
-if [ $# -ne 3 ]
+if [ $# -eq 4 ]
 then
   c_print "red" "Insufficient number of attributes"
   print_help
