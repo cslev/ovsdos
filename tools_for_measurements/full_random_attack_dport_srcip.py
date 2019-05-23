@@ -42,14 +42,14 @@ def generate_new_random_number(list_of_random_numbers, bit_width, unique):
     return r
 
 
-def generate_packets(n, bit_width):
+def generate_packets(n, bit_width, unique):
     '''
     n: number of random numbers to generate
     bit_width: on how many bits the random number should be generated
     '''
     random_numbers=list()
     for i in range(0,n):
-        random_numbers.append(generate_new_random_number(random_numbers, bit_width))
+        random_numbers.append(generate_new_random_number(random_numbers, bit_width, unique))
 
     return random_numbers
 
