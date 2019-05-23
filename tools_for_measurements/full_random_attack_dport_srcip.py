@@ -24,7 +24,7 @@ def getRandomIP():
 def convertInt2IP(integer_representation):
     return str(ipaddress.IPv4Address(integer_representation))
 
-def generate_new_random_number(list_of_random_numbers, bit_width):
+def generate_new_random_number(list_of_random_numbers, bit_width, unique):
     '''
     list_of_random_numbers: list of already generated random numbers to avoid
     having the same number multiple times
@@ -35,11 +35,11 @@ def generate_new_random_number(list_of_random_numbers, bit_width):
     # #if bit_width is shorter than the number of random numbers we need
     # #we need to prevent looping the recursion
     # if(len(list_of_random_numbers) < pow(2,bitwidth)-1):
-    if r in list_of_random_numbers:
-        # print "regenerate as {} already exists".format(r)
-        return generate_new_random_number(list_of_random_numbers, bit_width)
-    else:
-        return r
+    if unique:
+        if r in list_of_random_numbers:
+            # print "regenerate as {} already exists".format(r)
+            return generate_new_random_number(list_of_random_numbers, bit_width, unique)
+    return r
 
 
 def generate_packets(n, bit_width):
@@ -95,9 +95,15 @@ w=args.crossproduct
 #     print("{}".format(n*n))
 # else:
 #     print("{}".format(n))
+unique=True
+if (pow(2,16) < n ):
+    unique = False
+ports=generate_packets(n, 16, unique)
 
-ports=generate_packets(n, 16)
-tmp_ips=generate_packets(n, 32)
+unique=True
+if (pow(2,32) < n ):
+    unique = False
+tmp_ips=generate_packets(n, 32, unique)
 ips=list()
 
 
