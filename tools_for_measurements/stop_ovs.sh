@@ -28,7 +28,7 @@ done
 echo -e "\t\t\t[DONE]"
 
 echo -e "Removing default DP in kernel..."
-ovs-dpctl del-dp system@ovs-system
+sudo ovs-dpctl del-dp system@ovs-system
 echo -e "\t\t\t[DONE]"
 
 
