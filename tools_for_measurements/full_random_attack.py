@@ -19,7 +19,7 @@ file(PID_FILE, 'w').write(PID)
 
 
 def getRandomIP():
-    return str(ipaddress.IPV4Address(random.randint(1,0xffffffff))
+    return str(ipaddress.IPV4Address(random.randint(1,0xffffffff)))
 
 def generate_new_random_number(list_of_random_numbers, bit_width):
     '''
