@@ -20,6 +20,18 @@ echo -e "Removing openvswitch module..."
 sudo rmmod openvswitch 2>/dev/null
 echo -e "\t\t\t[DONE]"
 
+echo -e "Killing namespaces if there are any"
+for i in $(ip netns list|awk '{print $1}')
+do
+  ip netns delete $i
+done
+echo -e "\t\t\t[DONE]"
+
+echo -e "Removing default DP in kernel..."
+ovs-dpctl del-dp system@ovs-system
+echo -e "\t\t\t[DONE]"
+
+
 
 #checking
 echo "Check the following ps aux output:"
