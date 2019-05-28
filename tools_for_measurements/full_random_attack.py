@@ -27,7 +27,7 @@ def generate_new_random_number(list_of_random_numbers, bit_width):
     having the same number multiple times
     bit_width: on how many bits the random number should be generated
     '''
-    r = random.randint(0,pow(2, bit_width))
+    r = random.randint(0,pow(2, bit_width)-1)
 
     # #if bit_width is shorter than the number of random numbers we need
     # #we need to prevent looping the recursion
