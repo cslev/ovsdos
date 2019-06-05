@@ -28,11 +28,15 @@ ITERATION=100
 R1=1
 R2=65535
 
+c_print "blue" "[MAIN THREAD]\t Create directory for the header data and pcaps"
+mkdir -p ../pcap_generator/random_srcip_dport_sport/
+c_print "green" "[DONE]"
+
+
 for i in 17 34 68 85 170 850 1700 2500  5000 7500 10000 25000 50000
 do
   echo "i, megaflow_entries" > "random_srcip_dstport_srcport_attack_${i}.csv"
 
-  mkdir -p ../pcap_generator/random_srcip_dport_sport/
   for iter in $(seq 1 $ITERATION)
   do
 

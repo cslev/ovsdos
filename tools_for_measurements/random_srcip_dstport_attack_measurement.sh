@@ -1,4 +1,16 @@
 #!/bin/bash
+# THIS SCRIPT IS FOR EXAMINING  MFC ENTRY GROWTH WITH RANDOM PACKETS!
+# ENVIRONMENT USED FOR THIS CASE IS ONLY A SINGLE SERVER WITH NAMESPACES
+
+# WHENEVER THE AVERAGE NUMBER OF MFC ENTRIES ARE GATHERED, THE PCAPS CAN BE USED
+# FOR MORE COMPLEX ENVIRONMENTS (E.G., KVM, OPENSTACK, KUBERNETES
+# ============ ASSUMPTIONS ===========
+# 1) Open vSwitch bridge is running with name 'ovsbr' (without quotes).
+# 2) Two network namespaces are connected to ovsbr, namely ns1 and ns2.
+# 3) The attack is coming from ns1, and its NIC name is ns1_veth_ns.
+# 4) scapy, python-scapy are installed in the base system to merge pcap files and replay them
+# ------------------------------------
+
 source colorized_output.sh
 
 function print_help {
@@ -16,6 +28,10 @@ ITERATION=100
 R1=1
 R2=65535
 
+c_print "blue" "[MAIN THREAD]\t Create directory for the header data and pcaps"
+mkdir -p ../pcap_generator/random_srcip_dport/
+c_print "green" "[DONE]"
+
 for i in 17 34 68 85 170 850 1700 2500  5000 7500 10000 25000 50000
 do
   echo "i, megaflow_entries" > "random_srcip_dstport_attack_${i}.csv"
@@ -32,13 +48,13 @@ do
     sudo ovs-ofctl del-flows ovsbr
     DIFF=$(($R2-$R1+1))
     R=$(($(($RANDOM%$DIFF))+$R1))
-    sudo ovs-ofctl add-flow ovsbr "table=0,priority=1000,udp,in_port=3,nw_dst=10.0.0.2,tp_dst=${R},actions=output:2"
+    sudo ovs-ofctl add-flow ovsbr "table=0,priority=1000,udp,in_port=1,nw_dst=10.0.0.2,tp_dst=${R},actions=output:2"
     sleep 1
     c_print "green" "[DONE]"
 
     c_print "blue" "[MAIN THREAD]\t Add flow rule with a random source IP address" 0
     RANDOM_IP=$(echo $((RANDOM%256)).$((RANDOM%256)).$((RANDOM%256)).$((RANDOM%256)))
-    sudo ovs-ofctl add-flow ovsbr "table=0,priority=1000,udp,in_port=3,nw_dst=10.0.0.2,nw_src=${RANDOM_IP},actions=output:2"
+    sudo ovs-ofctl add-flow ovsbr "table=0,priority=1000,udp,in_port=1,nw_dst=10.0.0.2,nw_src=${RANDOM_IP},actions=output:2"
     sleep 1
     c_print "green" "[DONE]"
 

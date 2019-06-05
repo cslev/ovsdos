@@ -7,12 +7,19 @@
 
 # THE AIM IS TO INVESTIGATE THE EFFECT OF RANDOMNESS!
 
+
+# THIS SCRIPT IS FOR EXAMINING  MFC ENTRY GROWTH WITH RANDOM PACKETS!
+# ENVIRONMENT USED FOR THIS CASE IS ONLY A SINGLE SERVER WITH NAMESPACES
+
+# WHENEVER THE AVERAGE NUMBER OF MFC ENTRIES ARE GATHERED, THE PCAPS CAN BE USED
+# FOR MORE COMPLEX ENVIRONMENTS (E.G., KVM, OPENSTACK, KUBERNETES)
 # ============ ASSUMPTIONS ===========
 # 1) Open vSwitch bridge is running with name 'ovsbr' (without quotes).
 # 2) Two network namespaces are connected to ovsbr, namely ns1 and ns2.
 # 3) The attack is coming from ns1, and its NIC name is ns1_veth_ns.
 # 4) scapy, python-scapy are installed in the base system to merge pcap files and replay them
 # ------------------------------------
+
 
 
 source colorized_output.sh
