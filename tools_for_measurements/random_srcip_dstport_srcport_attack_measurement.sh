@@ -28,8 +28,9 @@ ITERATION=100
 R1=1
 R2=65535
 
+PCAP_DIR=../pcap_generator/random_srcip_dport_sport/
 c_print "blue" "[MAIN THREAD]\t Create directory for the header data and pcaps"
-mkdir -p ../pcap_generator/random_srcip_dport_sport/
+mkdir -p $PCAP_DIR
 c_print "green" "[DONE]"
 
 
@@ -41,9 +42,9 @@ do
   do
 
     c_print "blue" "[MAIN THREAD]\t Generate random packet sequence"
-    python full_random_header_generator.py -n $i -abc > ../pcap_generator/random_srcip_dport_sport/SIP_SP_DP_${i}_${iter}.csv
+    python full_random_header_generator.py -n $i -abc > $PCAP_DIR/SIP_SP_DP_${i}_${iter}.csv
     c_print "blue" "[MAIN THREAD]\t Generate pcap file from packet sequence"
-    python ../pcap_generator/pcap_generator_from_csv.py -i ../pcap_generator/random_srcip_dport_sport/SIP_SP_DP_${i}_${iter}.csv --dst_ip 10.0.0.2 -o ../pcap_generator/random_srcip_dport_sport/SIP_SP_DP_${i}_${iter}
+    python ../pcap_generator/pcap_generator_from_csv.py -i $PCAP_DIR/SIP_SP_DP_${i}_${iter}.csv --dst_ip 10.0.0.2 -o $PCAP_DIR/SIP_SP_DP_${i}_${iter}
     c_print "green" "[DONE]"
 
     c_print "blue" "[MAIN THREAD]\t Add flow rule with a random port numbers"
@@ -66,7 +67,7 @@ do
     c_print "green" "[DONE]"
 
     c_print "blue" "[MAIN THREAD]\t Starting the attack..."
-    ip netns exec ns1 tcpreplay -l 2 -q -t -i ns1_veth_ns ../pcap_generator/random_srcip_dport/SIP_SP_DP_${i}_${iter}.64bytes.pcap
+    ip netns exec ns1 tcpreplay -l 2 -q -t -i ns1_veth_ns $PCAP_DIR/SIP_SP_DP_${i}_${iter}.64bytes.pcap
     c_print "green" "[DONE]"
 
     c_print "blue" "[MAIN THREAD]\t Getting MFC entries/masks..."

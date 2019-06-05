@@ -27,9 +27,10 @@ function print_help {
 ITERATION=100
 R1=1
 R2=65535
+PCAP_DIR=../pcap_generator/random_srcip_dport/
 
 c_print "blue" "[MAIN THREAD]\t Create directory for the header data and pcaps"
-mkdir -p ../pcap_generator/random_srcip_dport/
+mkdir -p $PCAP_DIR
 c_print "green" "[DONE]"
 
 for i in 17 34 68 85 170 850 1700 2500  5000 7500 10000 25000 50000
@@ -39,9 +40,9 @@ do
   for iter in $(seq 1 $ITERATION)
   do
     c_print "blue" "[MAIN THREAD]\t Generate random packet sequence"
-    python full_random_header_generator.py -n $i -ab > ../pcap_generator/random_srcip_dport/SIP_DP_${i}_${iter}.csv
+    python full_random_header_generator.py -n $i -ab > $PCAP_DIR/SIP_DP_${i}_${iter}.csv
     c_print "blue" "[MAIN THREAD]\t Generate pcap file from packet sequence"
-    python ../pcap_generator/pcap_generator_from_csv.py -i ../pcap_generator/random_srcip_dport/SIP_DP_${i}_${iter}.csv --dst_ip 10.0.0.2 -o ../pcap_generator/random_srcip_dport/SIP_DP_${i}_${iter}
+    python ../pcap_generator/pcap_generator_from_csv.py -i $PCAP_DIR/SIP_DP_${i}_${iter}.csv --dst_ip 10.0.0.2 -o $PCAP_DIR/SIP_DP_${i}_${iter}
     c_print "green" "[DONE]"
 
     c_print "blue" "[MAIN THREAD]\t Add flow rule with a random port number"
@@ -59,7 +60,7 @@ do
     c_print "green" "[DONE]"
 
     c_print "blue" "[MAIN THREAD]\t Starting the attack..."
-    ip netns exec ns1 tcpreplay -l 2 -q -t -i ns1_veth_ns ../pcap_generator/random_srcip_dport/SIP_DP_${i}_${iter}.64bytes.pcap
+    ip netns exec ns1 tcpreplay -l 2 -q -t -i ns1_veth_ns $PCAP_DIR/SIP_DP_${i}_${iter}.64bytes.pcap
     c_print "green" "[DONE]"
 
     c_print "blue" "[MAIN THREAD]\t Getting MFC entries/masks..."
