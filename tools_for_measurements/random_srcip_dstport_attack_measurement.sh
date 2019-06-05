@@ -28,14 +28,14 @@ ITERATION=100
 R1=1
 R2=65535
 PCAP_DIR=../pcap_generator/random_srcip_dport/
-
+RES_DIR=random_srcip_dstport_attack_measurement
 c_print "blue" "[MAIN THREAD]\t Create directory for the header data and pcaps"
 mkdir -p $PCAP_DIR
 c_print "green" "[DONE]"
 
 for i in 10 17 50 100 260 516 1000 5000 8195 10000 50000
 do
-  echo "i, megaflow_entries" > "random_srcip_dstport_attack_${i}.csv"
+  echo "i, megaflow_entries" > "${RES_DIR}/random_srcip_dstport_attack_${i}.csv"
 
   for iter in $(seq 1 $ITERATION)
   do
@@ -68,7 +68,7 @@ do
 
     c_print "blue" "[MAIN THREAD]\t ${iter} iteration is ready"
     c_print "green" "[MAIN THREAD]\t ${iter}, ${MASK_NUM}"
-    echo "${iter}, ${MASK_NUM}" >> "random_srcip_dstport_attack_${i}.csv"
+    echo "${iter}, ${MASK_NUM}" >> "${RES_DIR}/random_srcip_dstport_attack_${i}.csv"
 
     c_print "blue" "[MAIN THREAD]\t Waiting the flow caches to reset (11 sec)"
     for iii in {1..11}
