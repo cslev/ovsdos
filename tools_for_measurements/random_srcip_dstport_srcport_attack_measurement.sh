@@ -75,7 +75,7 @@ do
 
     c_print "blue" "[MAIN THREAD]\t ${iter} iteration is ready"
     c_print "green" "[MAIN THREAD]\t ${iter}, ${MASK_NUM}"
-    echo "${iter}, ${MASK_NUM}" >> "random_srcip_dstport_attack_${i}.csv"
+    echo "${iter}, ${MASK_NUM}" >> "random_srcip_dstport_srcport_attack_${i}.csv"
 
     c_print "blue" "[MAIN THREAD]\t Waiting the flow caches to reset (11 sec)"
     for iii in {1..11}
