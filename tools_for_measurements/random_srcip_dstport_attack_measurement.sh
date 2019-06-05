@@ -33,7 +33,7 @@ c_print "blue" "[MAIN THREAD]\t Create directory for the header data and pcaps"
 mkdir -p $PCAP_DIR
 c_print "green" "[DONE]"
 
-for i in 17 34 68 85 170 850 1700 2500  5000 7500 10000 25000 50000
+for i in 10 17 50 100 260 516 1000 5000 8195 10000 50000
 do
   echo "i, megaflow_entries" > "random_srcip_dstport_attack_${i}.csv"
 
