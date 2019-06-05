@@ -78,16 +78,41 @@ parser = argparse.ArgumentParser(description="Generate a certain number of rando
 # help="Pay attention to uniqueness, i.e., n < pow(2,bitwidth) !")
 parser.add_argument('-n','--nn', nargs=1, required=True,
 help="Number of different values for each header field! E.g., -n 16 means 16 random IP addresses with 16 random ports (resulting in 16 packets)")
-parser.add_argument('-c','--crossproduct', action='store_true', required=False, dest='crossproduct',
-help="Enabling crossproduct - For each random IP there will be <number of packets> (set by -n argument) different ports resulting in <number of packets> times <number of packets> packets, e.g., -n 16 means 16*16 packets")
-parser.set_defaults(crossproduct=False)
+
+parser.add_argument('-a','--dst_port', action='store_true', required=False, dest='dst_port',
+help="Enabling random dst_port generation")
+parser.set_defaults(dst_port=False)
+
+parser.add_argument('-b','--src_ip', action='store_true', required=False, dest='src_ip',
+help="Enabling random src_ip generation")
+parser.set_defaults(src_ip=False)
+
+parser.add_argument('-c','--src_port', action='store_true', required=False, dest='src_port',
+help="Enabling random src_port generation")
+parser.set_defaults(src_port=False)
+
+
+# parser.add_argument('-c','--crossproduct', action='store_true', required=False, dest='crossproduct',
+# help="Enabling crossproduct - For each random IP there will be <number of packets> (set by -n argument) different ports resulting in <number of packets> times <number of packets> packets, e.g., -n 16 means 16*16 packets")
+# parser.set_defaults(crossproduct=False)
+
+
+
 
 
 args = parser.parse_args()
 # loop=int(args.loop[0])
 # bitwidth=int(args.bitwidth[0])
 n=int(args.nn[0])
-w=args.crossproduct
+# w=args.crossproduct
+dst_port=args.dst_port
+src_ip=args.src_ip
+src_port=args.src_port
+
+if not dst_port and not src_ip and not src_port:
+    print "ERROR: at least one of the header fields needs to be set to be randomized!"
+    print "Use --help to study the arguments!"
+    exit(-1)
 
 
 # print "Number of packets to be generated:"
@@ -96,18 +121,65 @@ w=args.crossproduct
 # else:
 #     print("{}".format(n))
 
-ports=generate_packets(n, 16)
-tmp_ips=generate_packets(n, 32)
-ips=list()
+if dst_port:
+    dst_ports=generate_packets(n, 16)
+
+if src_ip:
+    tmp_ips=generate_packets(n, 32)
+    ips=list()
+    for i in tmp_ips:
+        ips.append(convertInt2IP(i))
+
+if src_port:
+    src_ports=generate_packets(n, 16)
 
 
-for i in tmp_ips:
-    ips.append(convertInt2IP(i))
+only_one_header=False
+only_two_header=False
+three_header=False
 
-if w:
-    for ip in ips:
-        for port in ports:
-            print ("src_ip={},dst_port={}").format(ip,port)
+if (dst_port and not src_port and not src_ip) or (not dst_port and src_port and not src_ip) or (not dst_port and not src_port and src_ip):
+    only_one_header=True
+elif (dst_port and src_port and not src_ip) or (dst_port and not src_port and src_ip) or (not dst_port and src_port and src_ip):
+    only_two_header=True
+else:
+    three_header=True
+
+
+
+if only_one_header:
+    # if w:
+    #     if src_ip and dst_port and not src_port:
+    #         for ip in ips:
+    #             for port in dst_ports:
+    #                     print ("src_ip={},dst_port={}").format(ip,port)
+    #     if src_ip and src_port and not dst_port:
+    #         for ip in ips:
+    #             for port in src_ports:
+    #                     print ("src_ip={},src_port={}").format(ip,port)
+    #     if  not src_ip and dst_port
+    #
+    # else:
+    if dst_port:
+        for port in dst_ports:
+            print ("dst_port={}").format(port)
+    if src_port:
+        for port in src_ports:
+            print ("src_port={}").format(port)
+    if src_ip:
+        for ip in ips:
+            print ("src_ip={}").format(ip)
+elif only_two_header:
+    if dst_port and src_ip:
+        for i,ip in enumerate(ips):
+            print ("src_ip={},dst_port={}").format(ip,dst_ports[i])
+    elif dst_port and src_port:
+        for i,port in enumerate(dst_ports):
+            print ("dst_port={},src_port={}").format(port,src_ports[i])
+    elif src_port and src_ip:
+        for i,ip in enumerate(ips):
+            print ("src_ip={},src_port={}").format(ip,src_ports[i])
+
 else:
     for i,ip in enumerate(ips):
-        print ("src_ip={},dst_port={}").format(ip,ports[i])
+        print("src_ip={},dst_port={},src_port={}".format(ip,dst_ports[i],src_ports[i]))
