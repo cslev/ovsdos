@@ -17,9 +17,9 @@ function print_help {
   echo
   c_print "none" "Add random allow rule on destination port to OVS with a catch-all drop rule and send n random packets generated online (n=2,5,10,17,50,100,260,516,1000,5000,8195, 10000,50000). Do the whole thing 100 times!"
   c_print "none" "Usage:" 0
-  c_print "bold" "./random_srcip_dstport_attack_measurement.sh"
+  c_print "bold" "./random_dstport_attack_measurement.sh"
   c_print "none" "Example:"
-  c_print "none" "./random_srcip_dstport_attack_measurement.sh"
+  c_print "none" "./random_dstport_attack_measurement.sh"
   echo
   exit -1
 }
@@ -30,6 +30,11 @@ R2=65535
 
 PCAP_DIR=../pcap_generator/random_dport/
 RES_DIR=random_dstport_attack_measurement
+
+
+PCAP_BASE="DP"
+RES_FILEBASE="random_dstport_attack"
+
 c_print "blue" "[MAIN THREAD]\t Create directory for the header data and pcaps"
 mkdir -p $PCAP_DIR
 mkdir -p $RES_DIR
@@ -38,17 +43,17 @@ c_print "green" "[DONE]"
 
 for i in 2 5 10 17 50 100 260 516 1000 5000 8195 10000 50000
 do
-  echo "i, megaflow_entries" > "${RES_DIR}/random_dstport_attack_${i}.csv"
+  echo "i, megaflow_entries" > "${RES_DIR}/${RES_FILEBASE}_${i}.csv"
   #if for any reason RES_DIR is not made due to permission we save everything in
   #/tmp as well
-  echo "i, megaflow_entries" > "/tmp/random_dstport_attack_${i}.csv"
+  echo "i, megaflow_entries" > "/tmp/${RES_FILEBASE}_${i}.csv"
   for iter in $(seq 1 $ITERATION)
   do
 
     c_print "blue" "[MAIN THREAD]\t Generate random packet sequence"
-    python full_random_header_generator.py -n $i -a > $PCAP_DIR/DP_${i}_${iter}.csv
+    python full_random_header_generator.py -n $i -a > $PCAP_DIR/${PCAP_BASE}_${i}_${iter}.csv
     c_print "blue" "[MAIN THREAD]\t Generate pcap file from packet sequence"
-    python ../pcap_generator/pcap_generator_from_csv.py -i $PCAP_DIR/DP_${i}_${iter}.csv --dst_ip 10.0.0.2 -o $PCAP_DIR/DP_${i}_${iter}
+    python ../pcap_generator/pcap_generator_from_csv.py -i $PCAP_DIR/${PCAP_BASE}_${i}_${iter}.csv --dst_ip 10.0.0.2 -o $PCAP_DIR/${PCAP_BASE}_${i}_${iter}
     c_print "green" "[DONE]"
 
     c_print "blue" "[MAIN THREAD]\t Add flow rule with a random port numbers"
@@ -59,7 +64,7 @@ do
     sleep 1
 
     c_print "blue" "[MAIN THREAD]\t Starting the attack..."
-    ip netns exec ns1 tcpreplay -l 2 -q -t -i ns1_veth_ns $PCAP_DIR/DP_${i}_${iter}.64bytes.pcap
+    ip netns exec ns1 tcpreplay -l 2 -q -t -i ns1_veth_ns $PCAP_DIR/${PCAP_BASE}_${i}_${iter}.64bytes.pcap
     c_print "green" "[DONE]"
 
     c_print "blue" "[MAIN THREAD]\t Getting MFC entries/masks..."
@@ -67,11 +72,11 @@ do
 
     c_print "blue" "[MAIN THREAD]\t ${iter} iteration is ready"
     c_print "green" "[MAIN THREAD]\t ${iter}, ${MASK_NUM}"
-    echo "${iter}, ${MASK_NUM}" >> "${RES_DIR}/random_dstport_attack_${i}.csv"
+    echo "${iter}, ${MASK_NUM}" >> "${RES_DIR}/${RES_FILEBASE}_${i}.csv"
 
     #if for any reason RES_DIR is not made due to permission we save everything in
     #/tmp as well
-    echo "${iter}, ${MASK_NUM}" >> "/tmp/random_dstport_attack_${i}.csv"
+    echo "${iter}, ${MASK_NUM}" >> "/tmp/${RES_FILEBASE}_${i}.csv"
 
     c_print "blue" "[MAIN THREAD]\t Waiting the flow caches to reset (11 sec)"
     for iii in {1..11}
