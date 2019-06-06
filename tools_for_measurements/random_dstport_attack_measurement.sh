@@ -39,7 +39,9 @@ c_print "green" "[DONE]"
 for i in 2 5 10 17 50 100 260 516 1000 5000 8195 10000 50000
 do
   echo "i, megaflow_entries" > "${RES_DIR}/random_dstport_attack_${i}.csv"
-
+  #if for any reason RES_DIR is not made due to permission we save everything in
+  #/tmp as well
+  echo "i, megaflow_entries" > "/tmp/random_dstport_attack_${i}.csv"
   for iter in $(seq 1 $ITERATION)
   do
 
@@ -56,7 +58,7 @@ do
     sudo ovs-ofctl add-flow ovsbr "table=0,priority=1000,udp,in_port=1,nw_dst=10.0.0.2,tp_dst=${R},actions=output:2"
     sleep 1
 
-        c_print "blue" "[MAIN THREAD]\t Starting the attack..."
+    c_print "blue" "[MAIN THREAD]\t Starting the attack..."
     ip netns exec ns1 tcpreplay -l 2 -q -t -i ns1_veth_ns $PCAP_DIR/DP_${i}_${iter}.64bytes.pcap
     c_print "green" "[DONE]"
 
@@ -67,12 +69,19 @@ do
     c_print "green" "[MAIN THREAD]\t ${iter}, ${MASK_NUM}"
     echo "${iter}, ${MASK_NUM}" >> "${RES_DIR}/random_dstport_attack_${i}.csv"
 
+    #if for any reason RES_DIR is not made due to permission we save everything in
+    #/tmp as well
+    echo "${iter}, ${MASK_NUM}" >> "/tmp/random_dstport_attack_${i}.csv"
+
     c_print "blue" "[MAIN THREAD]\t Waiting the flow caches to reset (11 sec)"
     for iii in {1..11}
     do
       c_print "none" "." 0
       sleep 1
     done
-
   done
 done
+
+
+c_print "green" "[MAIN_THREAD]\t Measurement finished"
+c_print "green" "[MAIN_THREAD]\t Results are in ${RES_DIR} and /tmp"
