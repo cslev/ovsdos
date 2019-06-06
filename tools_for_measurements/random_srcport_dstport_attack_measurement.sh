@@ -62,6 +62,12 @@ do
     sudo ovs-ofctl add-flow ovsbr "table=0,priority=1000,udp,in_port=1,nw_dst=10.0.0.2,tp_dst=${R},actions=output:2"
     sleep 1
 
+    DIFF=$(($R2-$R1+1))
+    R=$(($(($RANDOM%$DIFF))+$R1))
+    sudo ovs-ofctl add-flow ovsbr "table=0,priority=1000,udp,in_port=1,nw_dst=10.0.0.2,tp_src=${R},actions=output:2"
+    sleep 1
+    c_print "green" "[DONE]"
+
     c_print "blue" "[MAIN THREAD]\t Starting the attack..."
     ip netns exec ns1 tcpreplay -l 2 -q -t -i ns1_veth_ns $PCAP_DIR/${PCAP_BASE}_${i}_${iter}.64bytes.pcap
     c_print "green" "[DONE]"
