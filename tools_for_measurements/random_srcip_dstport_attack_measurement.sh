@@ -78,7 +78,7 @@ do
 
     #if for any reason RES_DIR is not made due to permission we save everything in
     #/tmp as well
-    echo "${iter}, ${MASK_NUM}" >> "tmp/random_srcip_dstport_attack_${i}.csv"
+    echo "${iter}, ${MASK_NUM}" >> "/tmp/random_srcip_dstport_attack_${i}.csv"
 
     c_print "blue" "[MAIN THREAD]\t Waiting the flow caches to reset (11 sec)"
     for iii in {1..11}
