@@ -341,9 +341,9 @@ def SIP_DP(cache_file):
 
                 if relevant_header:
                     print("{} {}, " \
-                          "{} {} " \
-                          "{} {}, " \
-                          "{}\t{}, " \
+                          "{},{} " \
+                          "{},{}, " \
+                          "{},\t {}, " \
                           "\t(k={})".format(src_ipv4,
                                           dst_ipv4,
                                           src_port,
