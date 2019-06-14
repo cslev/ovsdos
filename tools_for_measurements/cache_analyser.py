@@ -357,7 +357,132 @@ def SIP_DP(cache_file):
 
 
 def SIP_SP_DP(cache_file):
-    return
+    cache = open(cache_file, 'r')
+
+    # output will be look like this:
+    print("src_ip/mask,\t\t\t" \
+          "dst_ip/mask," \
+          "src_port/mask," \
+          "dst_port/mask, "\
+          "src_ip_wildcarded,\t\t  " \
+          "dst_ip_wildcarded,\t\t    " \
+          "src_port_wildcarded, " \
+          "dst_port_wildcarded,\t" \
+          "(number of wildcarded bits)")
+
+
+    # one line in the cache raw data looks like this:
+    # recirc_id(0),in_port(2),eth(),eth_type(0x0800),ipv4(src=10.0.8.0/255.255.248.0,dst=10.0.0.2,proto=17,frag=no),udp(src=0/0xe000,dst=128/0xff80), packets:13253, bytes:795180, used:0.001s, actions:drop
+
+    relevant_header=False
+    # #iterate through the lines
+    for line in cache:
+        if line:
+            line_segments=line.split('),')
+            for i in line_segments:
+                # src_ipv4                       = "N/A"
+                # src_ipv4_mask                  = "N/A"
+                # dst_ipv4                       = "N/A"
+                # dst_ipv4_mask                  = "N/A"
+                # src_ipv4_wildcarded            = "N/A"
+                # dst_ipv4_wildcarded            = "N/A"
+                # number_of_wildcarded_bits_ipv4 = "N/A"
+                # src_port                       = "N/A"
+                # src_port_mask                  = "N/A"
+                # dst_port                       = "N/A"
+                # dst_port_mask                  = "N/A"
+                # src_port_wildcarded            = "N/A"
+                # dst_port_wildcarded            = "N/A"
+                # number_of_wildcarded_bits_port = "N/A"
+                # number_of_wildcarded_bits      = "N/A"
+                if i.startswith('ipv4'):
+                    # print("IPV4")
+                    relevant_header = True
+                    ipv4_results = _SIP_DP_analyzer(i)
+                    src_ipv4                       = ipv4_results[0]
+                    src_ipv4_mask                  = ipv4_results[1]
+                    dst_ipv4                       = ipv4_results[2]
+                    dst_ipv4_mask                  = ipv4_results[3]
+                    src_ipv4_wildcarded            = ipv4_results[4]
+                    dst_ipv4_wildcarded            = ipv4_results[5]
+                    number_of_wildcarded_bits_ipv4 = ipv4_results[6]
+
+
+                    #prettify output
+                    # src_ipv4=src_ipv4+str(',')
+                    # if(src_ipv4_mask=='255.255.255.255'):
+                    #     #there was no mask so 2 TABs are needed
+                    #     src_ipv4=src_ipv4+str('\t')
+                    #
+                    # #same thing for dst port
+                    # dst_ipv4=dst_ipv4+str(',')
+                    # if(dst_ipv4_mask=='255.255.255.255'):
+                    #     #there was no mask so 2 TABs are needed
+                    #     dst_ipv4=dst_ipv4+str('\t')
+
+                    # print(src_ipv4,dst_ipv4)
+                    # exit(-1)
+                    continue
+
+                if i.startswith('udp'):
+                    relevant_header = True
+                    port_results = _SP_DP_analyzer(i)
+                    src_port                       = port_results[0]
+                    src_port_mask                  = port_results[1]
+                    dst_port                       = port_results[2]
+                    dst_port_mask                  = port_results[3]
+                    src_port_wildcarded            = port_results[4]
+                    dst_port_wildcarded            = port_results[5]
+                    number_of_wildcarded_bits_port = port_results[6]
+                else:
+                    # print("i= {} -not good".format(i))
+                    relevant_header=False
+                    continue
+
+
+                # if number_of_wildcarded_bits != "N/A":
+                number_of_wildcarded_bits = int(number_of_wildcarded_bits_port) + int(number_of_wildcarded_bits_ipv4)
+
+                #prettify output (IP)
+                padding=",\t"
+                if (len(src_ipv4) < 23):
+                    padding+=str('\t')
+                    if src_ipv4_mask == "255.255.255.255":
+                        padding+=str('\t')
+
+                src_ipv4 = src_ipv4+padding
+
+                #prettify output (post)
+                # print (len(dst_port))
+                padding = ",\t"
+                # print(len(dst_port))
+                # if (len(dst_port) < 10):
+                #     padding+=str('\t')
+                # if (len(dst_port) < 8 or len(src_port) < 8):
+                #     padding+=str('\t')
+                ports_length = len(dst_port) + len(src_port)
+                if (ports_length) < 18:
+                    padding+=str('\t')
+                    if (ports_length) < 10:
+                        padding+=str('\t')
+
+                dst_port+=padding
+
+                if relevant_header:
+                    print("{} {}, " \
+                          "{}, {} " \
+                          "{}, {}, " \
+                          "{},\t {}, " \
+                          "\t(k={})".format(src_ipv4,
+                                          dst_ipv4,
+                                          src_port,
+                                          dst_port,
+                                          src_ipv4_wildcarded,
+                                          dst_ipv4_wildcarded,
+                                          src_port_wildcarded,
+                                          dst_port_wildcarded,
+                                          number_of_wildcarded_bits))
+
 
 parser = argparse.ArgumentParser(description="Analyse OVS MFC cache by filtering on specific header fields and convert the entries in a wildcarded way (e.g., 00010101********) to ease the understanding",
                                  usage="python cache_analyser.py -t [HEADER_TYPE] -i [INPUT_FILE]",
