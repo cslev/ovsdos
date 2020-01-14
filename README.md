@@ -232,15 +232,15 @@ $ sudo influx
 Create databases as follows:
 For the throughput results:
 ```
-> >create database iperf
+> create database iperf
 ```
 For CPU and system statistics (telegraf install will be discussed later):
 ```
-> >create database telegraf
+> create database telegraf
 ```
 For watching OVS datapath cache statistics:
 ```
-> >create database ovs_cache
+> create database ovs_cache
 ```
 Quit influx
 
