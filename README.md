@@ -89,7 +89,7 @@ will be added by initiating the VMs.
 ```
 $ sudo apt-get install qemu-kvm qemu-system-common qemu-system-x86 qemu-utils virt-manager
 ```
- - download the provided [debian9.qcow](http://drive.google.com/macskapocs) image
+ - download the provided [debian9.qcow](https://drive.google.com/open?id=1UA2iNO3YA_T52OPYn_bjFxHSXz0L905T) image
  - create a VM with *virt-manager* (GUI, for brevity)
  - set name to *victim*
  - setup a NAT interface to get internet access (default networking setup when you create a VM) as *git update* might be 
