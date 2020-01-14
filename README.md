@@ -1,12 +1,15 @@
 # OVS-DoS a.k.a. Tuple Space Explosion:  Denial-of-Service Attack Against a Software Packet Classifier
 Accompanying material for our the paper presented at CoNEXT'19.
+Summary and main website of the project can be found here [ovs-dos.comp.nus.edu.sg/](https://sites.google.com/view/tuple-space-explosion)
 
 **L. Csikor**, D. M. Divakaran, M. S. Kang, A. Kőrösi, B. Sonkoly, D. Haja, D.P. Pezaros, S. Schmid, G. Rétvári, "Tuple Space Explosion: A Denial-of-Service Attack Against a Software Packet Classifier", In proc. of ACM CoNEXT'19, Orlando, FL, USA, 2019, https://dl.acm.org/citation.cfm?doid=3359989.3365431.
 
 The material described below is also accompanying further public showcases including, but not limited to the following venues:
 
 **L. Csikor**, Min Suk Kang, Dinil Mon Divakaran, “The Discrepancy of the Megaflow Cache in OVS, Part II.” in OVS+OVN Conference, Red Hat, Westford, MA, 2019, https://bit.ly/35fFoKD.
+
 **L. Csikor** and G. Rétvári, “The Discrepancy of the Megaflow Cache in OVS,” in Open vSwitch Fall Conference, Club Auto Sport, Santa Clara, CA, 2018, https://bit.ly/34idgVQ.
+
 **L. Csikor**, C. Rothenberg, D. P. Pezaros, S. Schmid, L. Toka, and G. Rétvári, “Policy Injection: A Cloud Dataplane DoS Attack,” in Proceedings of the ACM SIGCOMM 2018 Conference on Posters and Demos, Budapest, Hungary, 2018, pp. 147-149, https://dl.acm.org/citation.cfm?id=3234250. 
 
 ## Summary
