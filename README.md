@@ -50,10 +50,9 @@ Correspondingly, the OVS running on *dione*  simply forwards the packets back an
 
 
 Our servers' parameters:
-Ubuntu 18.04
-OVS installed from repository and OVS datapath came from the stock kernel 
-modules, i.e., openvswitch's version is 2.9.0, and the kernel's version is 
-4.15.0-32
+*Ubuntu 18.04*
+
+OVS installed from repository and OVS datapath came from the stock kernel modules, i.e., openvswitch's version is *2.9.0*, and the kernel's version is *4.15.0-32*
 
 ### IMPORTANT
 **The following actions must be executed on both servers (practically, one after each other) unless otherwise stated!**
@@ -206,6 +205,7 @@ $ sudo ovs-ofctl add-flows ovsbr ovsdor/tools_for_measurements/malicious_acl.flo
 **NOTE, THE INSTALLING AND CONFIGURATION STEPS BELOW SHOULD ONLY BE DONE ONCE ON *titan* (WHERE THE MALICIOUS FLOW RULES ARE INSTALLED), AND ANY LATER EXPERIMENTS WILL NOT REQUIRE TO REINSTALL AND RECONFIGURE THESE THINGS ON THE HYPERVISORS**
 
 **InfluxDB**
+
 It might sound too fancy, but don't skip this step as further helper scripts assume that you want to visualize the results.
 
 Download *influxdb*:
@@ -245,6 +245,7 @@ For watching OVS datapath cache statistics:
 Quit influx
 
 **TELEGRAPH monitoring tool**
+
 Install telegraf via the provided .deb file (or download another one for your 
 distribution):
 ```
@@ -258,14 +259,17 @@ you have set when you have installed influx - the one above is the default).
 
 ### Start scripts and tools for visualization
 **INFLUXDB**
+
 Should be running by default after the installation
 
 **TELEGRAPH monitoring tool**
+
 Start the telegraf monitoring system:
 ```
 $ sudo telegraf -config telegraf.conf
 ```
 **OVS cache monitoring script**
+
 Start to monitor the cache-statistics of the OVS instance running on the second hypervisor (*titan*), where the malicious flow rules has been installed:
 ```
 $ sudo cd ovsdos/tools_for_measurements/
@@ -274,6 +278,7 @@ $ sudo ./start_ovs_cache_log.sh
 
 
 **GRAFANA, i.e., let's see the thing**
+
 Download and run our containerized grafana image (available at dockerhub)
 ```
 $ sudo docker run -d --name ovsdos_grafana -p 3000:3000 cslev/ovsdos_grafana
