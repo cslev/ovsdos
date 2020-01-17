@@ -123,7 +123,7 @@ This addition will instruct the VM to have a secondary virtual NIC that will be 
 Now, your victim VM is ready. In order to have an attacker VM as well, just clone the whole system (via virt-manager or via virsh command)
  - name your cloned system as *attacker*
 ```
-$ sudo virt-clone --original vitcim --name attacker --auto-clone
+$ sudo virt-clone --original victim --name attacker --auto-clone
 ```
 
  - (edit XML and add a new interface for OVS as mentioned above, if it has not been cloned properly)
