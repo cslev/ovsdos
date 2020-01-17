@@ -62,7 +62,7 @@ OVS installed from repository and OVS datapath came from the stock kernel module
 #### Clone repository
 ```
 $ git clone https://github.com/cslev/ovsdos
-$ git submodule update --remote --merge
+$ git submodule update --init --recursive
 $ cd ovsdos/tools_for_measurement/
 ```
 
