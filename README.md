@@ -188,10 +188,10 @@ git submodule update --remote --merge
 ```
 
 2) Configure interfaces in the VMs as follows:
- - *Victim1*: ifconfig ens3 10.1.1.1/24 up
- - *Victim2*: ifconfig ens3 10.1.1.2/24 up
- - *Attacker1*: ifconfig ens3 10.0.0.1/24 up
- - *Attacker2*: ifconfig ens3 10.0.0.2/24 up
+ - *Victim1*:   `ifconfig ens3 10.1.1.1/24 up`
+ - *Victim2*:   `ifconfig ens3 10.1.1.2/24 up`
+ - *Attacker1*: `ifconfig ens3 10.0.0.1/24 up`
+ - *Attacker2*: `ifconfig ens3 10.0.0.2/24 up`
  
  
 ### Add the physical interface to OVS:
