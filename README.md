@@ -117,7 +117,12 @@ Important part is the *type* set to **bridge**, and the *source* set to **ovsbr*
 
 Choose different MAC addresses for the two interfaces to avoid MAC collision. For easier future reference, I do recommend to change the last byte of the MAC addressess to `:11` and `:22` for the NAT and the OVS interface, respectively.
 
-**However, bear in mind that according to the *domain,bus,slot* and *function*, the primary and secondary interfaces might get swapped. This can result in the following:**
+The `<address...> `tag should be copied from the descriptor of the original NAT interface, but change the `function='0xY'` by incrementing it.
+In particular, usually the function is set to `0x0` for the original NAT interface, so setting it to `0x1` should be fine!
+Note: this means that your interfaces in the VM would have the same base name (i.e., `enp1s0XX`) and the NAT interface will be `...f0`, while the OVS interface will be `...f1`.
+
+If you don't do not change the `<address...>` tag, you will have the following issue that needs special attention
+**According to the *domain,bus,slot* and *function*, the primary and secondary interfaces might get swapped. This can result in the following:**
  1) that on the host system, your *vnet0* and *vnet1* will be used for the OVS port and for the NAT (internet access), respectively, not the other way around how this description assumes
  2) the default DHCP querying interface might not the right one (if it is configured), check */etc/network/interfaces* in each VM accordingly
  3) The flow rules corresponding to the interfaces and their order can also be swapped. Manual tweaking of */tools_for_measurement/simple_forwarding.flows* and */tools_for_measuremet/malicious_acl.flows* might be required. Once you have identified which *vnetX* interface is for what (i.e., for NAT and OVS port), use *ovs-ofctl show ovsbr* command to get the correct port identifiers. See example below:
@@ -152,11 +157,7 @@ actions: output enqueue set_vlan_vid set_vlan_pcp strip_vlan mod_dl_src mod_dl_d
 OFPT_GET_CONFIG_REPLY (xid=0x4): frags=normal miss_send_len=0
 
  ```
- In order to have them in the correct order, do this:
- 
- The `<address...> `tag should be copied from the descriptor of the original NAT interface, but change (i.e., increase with one) the `function='0xY'`.
-Usually, the function is set to `0x0` for the original NAT interface, so setting it to `0x1` should be fine!
-(Note: this means that your interfaces in the VM would have the same base name (i.e., `enp1s0XX`) and the NAT interface will be `...f0`, while the OVS interface will be `...f1`.
+
  
  - Save and exit
 
