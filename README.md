@@ -178,6 +178,41 @@ sudo virsh start victim
 sudo virsh start attacker
 ```
 
+**Possible errors (skip this if you had none)**
+
+In some cases, especially if OVS was installed from source and its binaries are placed to `/usr/local/bin` instead of `/usr/bin`, then staring the VM might complain that it could not add `vnetX` interface to bridge `ovsbr`.
+Running `dmesg` will let you know that the problem relies in apparmor, in particularly, it does not allow binaries in `/usr/local/bin`.
+```
+[  609.080435] audit: type=1400 audit(1579757198.356:35): apparmor="DENIED" operation="exec" profile="/usr/sbin/libvirtd" name="/usr/local/bin/ovs-vsctl" pid=3882 comm="libvirtd" requested_mask="x" denied_mask="x" fsuid=0 ouid=0
+```
+
+To resolve this, we have to manually tweak apparmor as follows:
+
+Open `/etc/apparmor.d/usr.sbin.libvirtd`
+
+Add the following line to it, where similar lines appear:
+```
+/usr/local/bin/* PUx,
+```
+
+Now, we need to validate the configuration by these libvirt-related commands:
+```
+sudo  apparmor_parser -R /etc/apparmor.d/usr.sbin.libvirtd
+sudo apparmor_parser -R /etc/apparmor.d/usr.lib.libvirt.virt-aa-helper
+```
+
+If no error, then our Copy+Paste was working OK.
+Then, restart apparmor and you are good to go:
+```
+sudo systemctl stop apparmor
+sudo systemctl status apparmor
+```
+or
+```
+sudo /etc/init.d/apparmor stop
+sudo /etc/init.d/apparmor start
+```
+
 #### Access and configure the VMs
 Each VM has an SSH server installed for easy access, but you can use the virsh console 
 to access them:
