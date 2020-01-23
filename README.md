@@ -110,7 +110,7 @@ sudo virsh edit victim
    <source bridge='ovsbr'/>
    <virtualport type='openvswitch'/>
    <model type='virtio'/>
-   <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+   <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0'/>
 </interface>
  ```
 Important part is the *type* set to **bridge**, and the *source* set to **ovsbr**.
