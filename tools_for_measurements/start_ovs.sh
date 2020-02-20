@@ -1,13 +1,13 @@
 #!/bin/bash
 #set here which binaries you want to use!
-OVS_PATH_SET=0 #if set to 0, then /usr/[local]/bin/ binaries will be used
+OVS_PATH_SET=1 #if set to 0, then /usr/[local]/bin/ binaries will be used
 OVS_MODULE_NAME="openvswitch"
 
 # ALWAYS USE MODPROBE INSTEAD OF INSMOD
 # IF YOU DO NOT KNOW HOW TO INSTALL A KERNEL MODULE THAT DOES NOT OVERWRITE YOUR CURRENT ONE
 # CHECK THE INFO FILE IN THIS REPOSITORY sign_and_use_ovs_module.info!
 
-OVS_PATH="/home/csikor/openvswitch-2.10.0"
+OVS_PATH="/root/ovs"
 OVSDB_PATH="${OVS_PATH}/ovsdb"
 OVSVSWITCHD_PATH="${OVS_PATH}/vswitchd"
 OVSUTILITIES_PATH="${OVS_PATH}/utilities"
@@ -86,7 +86,15 @@ DB_SOCK="${DB_SOCK}/db.sock"
 
 ptcp_port=16633
 echo -ne "${yellow}Adding OVS kernel module${none}"
-sudo modprobe $OVS_MODULE_NAME 2>&1
+sudo rmmod $OVS_MODULE_NAME > /dev/null 2>&1
+if [ $OVS_PATH_SET -eq 0 ]
+then
+  sudo modprobe $OVS_MODULE_NAME  2>&1
+else
+#  sudo insmod $OVS_MODPATH 2>&1
+  sudo modprobe $OVS_MODULE_NAME 2>&1
+
+fi
 
 echo -e "\t\t${bold}${green}[DONE]${none}"
 
@@ -110,7 +118,7 @@ fi
 echo -ne "${yellow}Create ovs database structure${none}"
 if [ $OVS_PATH_SET -eq 0 ]
 then
-  sudo ovsdb-tool create /etc/openvswitch/conf.db  /usr/share/openvswitch/vswitch.ovsschema
+  sudo ovsdb-tool create /etc/openvswitch/conf.db  /usr/local/share/openvswitch/vswitch.ovsschema
 else
   sudo $OVSDB_PATH/ovsdb-tool create /usr/local/etc/openvswitch/conf.db  $OVSVSWITCHD_PATH/vswitch.ovsschema
 fi
