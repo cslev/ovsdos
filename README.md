@@ -336,6 +336,33 @@ sudo dpkg -i telegraf_0.10.2-1_amd64.deb
 
 Open *telegraf.conf* and set your influxdb's url to *localhost:8086* (or any other 
 you have set when you have installed influx - the one above is the default).
+```
+[[outputs.influxdb]]
+  ### The full HTTP or UDP endpoint URL for your InfluxDB instance.
+  ### Multiple urls can be specified but it is assumed that they are part of the same
+  ### cluster, this means that only ONE of the urls will be written to each interval.
+  # urls = ["udp://localhost:8089"] # UDP endpoint example
+  urls = ["http://localhost:8086"] # required
+
+
+```
+
+Furthermore, update the NIC related setting somewhere at the bottom:
+```
+# Read metrics about network interface usage
+[[inputs.net]]
+  # collect data only about specific interfaces
+  interfaces = ["ens2"]
+```
+Replace `ens2` with your interface name (This interface is the one physical interface in our setup)
+
+*Telegraf* might be running automatically after installing it using a default configuration file located at /etc/telegraf.
+In this case, disable telegraf service to run automatically:
+```
+sudo systemctl disable telegraf
+```
+It is still running, but now we can kill the process as it would not be restarted by the system.
+Do `ps aux |grep telegraf` and kill the process accordingly.
 
 
 ### Start scripts and tools for visualization
