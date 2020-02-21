@@ -110,13 +110,19 @@ sudo virsh edit victim
    <source bridge='ovsbr'/>
    <virtualport type='openvswitch'/>
    <model type='virtio'/>
-   <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+   <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0'/>
 </interface>
  ```
 Important part is the *type* set to **bridge**, and the *source* set to **ovsbr**.
-Choose different MAC addresses for the two interfaces to avoid MAC collision.
-Note: <address...> tag should be copied from the descriptor of the other interface as it might look different from the one above.
-**However, bear in mind that according to the *domain,bus,slot* and *function*, the primary and secondary interfaces might get swapped. This can result in the following:**
+
+Choose different MAC addresses for the two interfaces to avoid MAC collision. For easier future reference, I do recommend to change the last byte of the MAC addressess to `:11` and `:22` for the NAT and the OVS interface, respectively.
+
+The `<address...> `tag should be copied from the descriptor of the original NAT interface, but change the `function='0xY'` by incrementing it.
+In particular, usually the function is set to `0x0` for the original NAT interface, so setting it to `0x1` should be fine!
+Note: this means that your interfaces in the VM would have the same base name (i.e., `enp1s0XX`) and the NAT interface will be `...f0`, while the OVS interface will be `...f1`.
+
+If you don't do not change the `<address...>` tag, you will have the following issue that needs special attention
+**According to the *domain,bus,slot* and *function*, the primary and secondary interfaces might get swapped. This can result in the following:**
  1) that on the host system, your *vnet0* and *vnet1* will be used for the OVS port and for the NAT (internet access), respectively, not the other way around how this description assumes
  2) the default DHCP querying interface might not the right one (if it is configured), check */etc/network/interfaces* in each VM accordingly
  3) The flow rules corresponding to the interfaces and their order can also be swapped. Manual tweaking of */tools_for_measurement/simple_forwarding.flows* and */tools_for_measuremet/malicious_acl.flows* might be required. Once you have identified which *vnetX* interface is for what (i.e., for NAT and OVS port), use *ovs-ofctl show ovsbr* command to get the correct port identifiers. See example below:
@@ -151,6 +157,7 @@ actions: output enqueue set_vlan_vid set_vlan_pcp strip_vlan mod_dl_src mod_dl_d
 OFPT_GET_CONFIG_REPLY (xid=0x4): frags=normal miss_send_len=0
 
  ```
+
  
  - Save and exit
 
@@ -169,6 +176,41 @@ sudo virt-clone --original victim --name attacker --auto-clone
 ```
 sudo virsh start victim
 sudo virsh start attacker
+```
+
+**Possible errors (skip this if you had none)**
+
+In some cases, especially if OVS was installed from source and its binaries are placed to `/usr/local/bin` instead of `/usr/bin`, then staring the VM might complain that it could not add `vnetX` interface to bridge `ovsbr`.
+Running `dmesg` will let you know that the problem relies in apparmor, in particularly, it does not allow binaries in `/usr/local/bin`.
+```
+[  609.080435] audit: type=1400 audit(1579757198.356:35): apparmor="DENIED" operation="exec" profile="/usr/sbin/libvirtd" name="/usr/local/bin/ovs-vsctl" pid=3882 comm="libvirtd" requested_mask="x" denied_mask="x" fsuid=0 ouid=0
+```
+
+To resolve this, we have to manually tweak apparmor as follows:
+
+Open `/etc/apparmor.d/usr.sbin.libvirtd`
+
+Add the following line to it, where similar lines appear:
+```
+/usr/local/bin/* PUx,
+```
+
+Now, we need to validate the configuration by these libvirt-related commands:
+```
+sudo  apparmor_parser -R /etc/apparmor.d/usr.sbin.libvirtd
+sudo apparmor_parser -R /etc/apparmor.d/usr.lib.libvirt.virt-aa-helper
+```
+
+If no error, then our Copy+Paste was working OK.
+Then, restart apparmor and you are good to go:
+```
+sudo systemctl stop apparmor
+sudo systemctl status apparmor
+```
+or
+```
+sudo /etc/init.d/apparmor stop
+sudo /etc/init.d/apparmor start
 ```
 
 #### Access and configure the VMs
@@ -294,6 +336,33 @@ sudo dpkg -i telegraf_0.10.2-1_amd64.deb
 
 Open *telegraf.conf* and set your influxdb's url to *localhost:8086* (or any other 
 you have set when you have installed influx - the one above is the default).
+```
+[[outputs.influxdb]]
+  ### The full HTTP or UDP endpoint URL for your InfluxDB instance.
+  ### Multiple urls can be specified but it is assumed that they are part of the same
+  ### cluster, this means that only ONE of the urls will be written to each interval.
+  # urls = ["udp://localhost:8089"] # UDP endpoint example
+  urls = ["http://localhost:8086"] # required
+
+
+```
+
+Furthermore, update the NIC related setting somewhere at the bottom:
+```
+# Read metrics about network interface usage
+[[inputs.net]]
+  # collect data only about specific interfaces
+  interfaces = ["ens2"]
+```
+Replace `ens2` with your interface name (This interface is the one physical interface in our setup)
+
+*Telegraf* might be running automatically after installing it using a default configuration file located at /etc/telegraf.
+In this case, disable telegraf service to run automatically:
+```
+sudo systemctl disable telegraf
+```
+It is still running, but now we can kill the process as it would not be restarted by the system.
+Do `ps aux |grep telegraf` and kill the process accordingly.
 
 
 ### Start scripts and tools for visualization
