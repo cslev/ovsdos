@@ -1,0 +1,2 @@
+table=0,priority=1000,udp,in_port=1,nw_dst=10.0.0.2,tp_dst=246, actions=output:2
+table=0,priority=10,in_port=1, actions=drop
