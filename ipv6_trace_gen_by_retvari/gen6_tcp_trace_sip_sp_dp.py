@@ -58,7 +58,7 @@ for i in range(16):
                 s[i] = s[i] + (1 << (7-j))
 
             spoof_sip = ipaddress.IPv6Address(bytes(s))
-        spoof_sip_list.append(spoof_sip)
+        # spoof_sip_list.append(spoof_sip)
         # pprint.pprint(str(spoof_sip))
         # pprint.pprint(args.dst_ip)
 
@@ -72,7 +72,7 @@ for i in range(16):
                     spoof_sp = src_tcp - (1 << (15-k))
                 else:
                     spoof_sp = src_tcp + (1 << (15-k))
-            spoof_sp_list.append(spoof_sp)
+            # spoof_sp_list.append(spoof_sp)
             # dst port
             n = list(bin(dst_tcp)[2:].zfill(16))
             for l in range(17):
@@ -83,7 +83,7 @@ for i in range(16):
                         spoof_dp = dst_tcp - (1 << (15-l))
                     else:
                         spoof_dp = dst_tcp + (1 << (15-l))
-
+                # spoof_dp_list.append(spoof_dp)
                 p.append(Ether(src=args.src_mac, dst=args.dst_mac)/ \
                          IPv6(src=str(spoof_sip), dst=args.dst_ip)/ \
                          TCP(sport=int(spoof_sp), dport=int(spoof_dp))/ \
@@ -93,9 +93,9 @@ for i in range(16):
                      #          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 
 print("Number of packets generated: P{}".format(len(p)))
-print("DST PORTS used: {}\n".format(spoof_dp_list))
-print("SRC PORTS used: {}\n".format(spoof_sp_list))
-print("SRC IPs used: {}\n".format(spoof_sip_list))
+# print("DST PORTS used: {}\n".format(spoof_dp_list))
+# print("SRC PORTS used: {}\n".format(spoof_sp_list))
+# print("SRC IPs used: {}\n".format(spoof_sip_list))
 if args.shuffle == True:
     shuffle(p)
 
