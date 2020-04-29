@@ -51,11 +51,12 @@ for i in range(16):
         if j==8:
             spoof_sip=src_ip
         else:
+            s = src_ip_list[:]
             if int(n[j]) == 1:
                 s[i] = s[i] - (1 << (7-j))
             else:
                 s[i] = s[i] + (1 << (7-j))
-            s = src_ip_list[:]
+
             spoof_sip = ipaddress.IPv6Address(bytes(s))
         spoof_sip_list.append(spoof_sip)
         # pprint.pprint(str(spoof_sip))
