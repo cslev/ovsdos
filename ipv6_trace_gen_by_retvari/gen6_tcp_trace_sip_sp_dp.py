@@ -92,8 +92,10 @@ for i in range(16):
                      #          TCP(sport=20, dport=int(spoof_dp))/ \
                      #          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 
-sys.stderr.write("Number of packets generated: %d\n" % len(p))
-
+print("Number of packets generated: P{}".format(len(p)))
+print("DST PORTS used: {}\n".format(spoof_dp_list))
+print("SRC PORTS used: {}\n".format(spoof_sp_list))
+print("SRC IPs used: {}\n".format(spoof_sip_list))
 if args.shuffle == True:
     shuffle(p)
 
