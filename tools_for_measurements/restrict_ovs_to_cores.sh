@@ -89,7 +89,7 @@ do
   then
     echo "00,00000002" > /proc/irq/$i/smp_affinity
   else
-    echo "00,00000004" > /proc/irq/$i/smp_affinity
+    echo "00,00000002" > /proc/irq/$i/smp_affinity
   fi
 done
 echo -e "${green}[DONE]${none}"
