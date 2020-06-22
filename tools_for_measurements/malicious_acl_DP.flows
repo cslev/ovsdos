@@ -2,4 +2,5 @@ table=0,priority=1000,ip,in_port=ens2,nw_src=10.1.1.1,nw_dst=10.1.1.2, actions=o
 table=0,priority=1000,ip,in_port=vnet1,nw_src=10.1.1.2,nw_dst=10.1.1.1, actions=output:ens2
 table=0,priority=1000,arp, actions=FLOOD
 table=0,priority=1000,udp,in_port=ens2,nw_dst=10.0.0.2,tp_dst=80, actions=output:vnet3
+table=0,priority=1000,udp,in_port=ens2,nw_dst=10.10.10.11, actions=drop
 table=0,priority=10,in_port=ens2, actions=drop
