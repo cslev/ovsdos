@@ -125,39 +125,7 @@ If you don't do not change the `<address...>` tag, you will have the following i
 **According to the *domain,bus,slot* and *function*, the primary and secondary interfaces might get swapped. This can result in the following:**
  1) that on the host system, your *vnet0* and *vnet1* will be used for the OVS port and for the NAT (internet access), respectively, not the other way around how this description assumes
  2) the default DHCP querying interface might not the right one (if it is configured), check */etc/network/interfaces* in each VM accordingly
- 3) The flow rules corresponding to the interfaces and their order can also be swapped. Manual tweaking of */tools_for_measurement/simple_forwarding.flows* and */tools_for_measuremet/malicious_acl.flows* might be required. Once you have identified which *vnetX* interface is for what (i.e., for NAT and OVS port), use *ovs-ofctl show ovsbr* command to get the correct port identifiers. See example below:
- ```
-ovs-ofctl show ovsbr
-
-OFPT_FEATURES_REPLY (xid=0x2): dpid:00001c34da5e0ed8
-n_tables:254, n_buffers:0
-capabilities: FLOW_STATS TABLE_STATS PORT_STATS QUEUE_STATS ARP_MATCH_IP
-actions: output enqueue set_vlan_vid set_vlan_pcp strip_vlan mod_dl_src mod_dl_dst mod_nw_src mod_nw_dst mod_nw_tos mod_tp_src mod_tp_dst
- 1(vnet1): addr:fe:54:00:95:82:21
-     config:     0
-     state:      0
-     current:    10MB-FD COPPER
-     speed: 10 Mbps now, 0 Mbps max
- 2(vnet3): addr:fe:54:00:63:5e:22
-     config:     0
-     state:      0
-     current:    10MB-FD COPPER
-     speed: 10 Mbps now, 0 Mbps max
- 3(ens2): addr:1c:34:da:5e:0e:d8
-     config:     0
-     state:      0
-     current:    AUTO_NEG
-     advertised: 1GB-FD 10GB-FD AUTO_NEG AUTO_PAUSE
-     supported:  1GB-FD 10GB-FD AUTO_NEG AUTO_PAUSE
-     speed: 0 Mbps now, 10000 Mbps max
- LOCAL(ovsbr): addr:1c:34:da:5e:0e:d8
-     config:     PORT_DOWN
-     state:      LINK_DOWN
-     speed: 0 Mbps now, 0 Mbps max
-OFPT_GET_CONFIG_REPLY (xid=0x4): frags=normal miss_send_len=0
-
- ```
-
+ 3) The flow rules corresponding to the interfaces and their order *might* also be swapped. Manual tweaking of */tools_for_measurement/simple_forwarding.flows* and */tools_for_measuremet/malicious_acl.flows* might be required. Once you have identified which *vnetX* interface is for what (i.e., for NAT and OVS port), use *ovs-ofctl show ovsbr* command to get the correct port identifiers (see example output later). 
  
  - Save and exit
 
@@ -259,6 +227,38 @@ sudo ethtool -K ens3f0 tx off rx off gso off gro off tso off (rso off)
 If you have carried out the steps in the same chronological order, then your 
 OVS instance will have port 1 connected to the VICTIM, port 2 to the ATTACKER, 
 and port 3 to the hypervisor.
+```
+ovs-ofctl show ovsbr
+
+OFPT_FEATURES_REPLY (xid=0x2): dpid:00001c34da5e0ed8
+n_tables:254, n_buffers:0
+capabilities: FLOW_STATS TABLE_STATS PORT_STATS QUEUE_STATS ARP_MATCH_IP
+actions: output enqueue set_vlan_vid set_vlan_pcp strip_vlan mod_dl_src mod_dl_dst mod_nw_src mod_nw_dst mod_nw_tos mod_tp_src mod_tp_dst
+ 1(vnet1): addr:fe:54:00:95:82:21
+     config:     0
+     state:      0
+     current:    10MB-FD COPPER
+     speed: 10 Mbps now, 0 Mbps max
+ 2(vnet3): addr:fe:54:00:63:5e:22
+     config:     0
+     state:      0
+     current:    10MB-FD COPPER
+     speed: 10 Mbps now, 0 Mbps max
+ 3(ens2): addr:1c:34:da:5e:0e:d8
+     config:     0
+     state:      0
+     current:    AUTO_NEG
+     advertised: 1GB-FD 10GB-FD AUTO_NEG AUTO_PAUSE
+     supported:  1GB-FD 10GB-FD AUTO_NEG AUTO_PAUSE
+     speed: 0 Mbps now, 10000 Mbps max
+ LOCAL(ovsbr): addr:1c:34:da:5e:0e:d8
+     config:     PORT_DOWN
+     state:      LINK_DOWN
+     speed: 0 Mbps now, 0 Mbps max
+OFPT_GET_CONFIG_REPLY (xid=0x4): frags=normal miss_send_len=0
+
+ ```
+
 
 **Don't forget to repeat these steps on the other server you use as hypervisor.**
 
